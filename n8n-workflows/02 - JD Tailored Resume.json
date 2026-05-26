@@ -1,0 +1,419 @@
+{
+  "name": "02 - JD Tailored Resume",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "jd-match",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -64
+      ],
+      "id": "ed4ecbe9-3b45-4563-a9f9-858c927daf9f",
+      "name": "Webhook",
+      "webhookId": "91ed5980-2a1d-48fa-a878-3838d411bb89"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst apiKey = \"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\";\n\n// Verify message is not empty before calling API\nif (!data.userMessage || data.userMessage.length < 100) {\n  throw new Error('userMessage is empty or too short: ' + (data.userMessage || 'EMPTY'));\n}\n\nconst bodyObj = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    { role: 'system', content: data.systemMessage },\n    { role: 'user', content: data.userMessage }\n  ],\n  temperature: 0.6,\n  top_p: 0.95,\n  max_tokens: 4096\n};\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json',\n    'Accept': 'application/json'\n  },\n  body: JSON.stringify(bodyObj),\n  returnFullResponse: false,\n  ignoreHttpStatusErrors: false\n});\n\nconst parsed = typeof response === 'string' ? JSON.parse(response) : response;\nconst choice = parsed.choices[0];\n\nlet rawContent = choice.message.content\n  || choice.message.reasoning_content\n  || choice.message.reasoning\n  || '';\n\nif (!rawContent || rawContent.length < 10) {\n  throw new Error('Empty response from model. Full API response: ' + JSON.stringify(parsed).substring(0, 500));\n}\n\nconst cleaned = rawContent\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .trim();\n\nconst jsonStart = cleaned.indexOf('{');\nconst jsonEnd = cleaned.lastIndexOf('}');\n\nif (jsonStart === -1 || jsonEnd === -1) {\n  throw new Error('No JSON found in response: ' + cleaned.substring(0, 300));\n}\n\nlet resumeData;\ntry {\n  resumeData = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));\n} catch(e) {\n  throw new Error('JSON parse failed: ' + cleaned.substring(jsonStart, jsonStart + 300));\n}\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    match_score: data.match_score,\n    matched_keywords: data.matched_keywords,\n    missing_keywords: data.missing_keywords,\n    resume_data: resumeData,\n    iteration: data.iteration || 0,\n    ats_score: 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -16
+      ],
+      "id": "dd905b5d-e73d-47a7-b081-90a1df70ac2e",
+      "name": "Build Tailored Resume"
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "resume-builder-pdfs-t23",
+        "fileName": "=resumes/{{ $('Build HTML Template').first().json.user_id }}/{{ $('Build HTML Template').first().json.filename }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.awsS3",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        -240
+      ],
+      "id": "44d9f076-4629-4cf6-9c0c-aee56fbea768",
+      "name": "Upload a file",
+      "credentials": {
+        "aws": {
+          "id": "QDk4zwQOqsV5NpiI",
+          "name": "AWS (IAM) account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst apiKey = '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';\n\nconst bodyObj = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are an ATS scoring expert. Return valid JSON only. No markdown. No explanation.'\n    },\n    {\n      role: 'user',\n      content: 'Score this resume for ATS compatibility from 0 to 100. Consider keyword density, action verbs, quantified achievements, structure, skills completeness. Resume data: ' + JSON.stringify(data.resume_data) + '. Return ONLY valid JSON: {\"score\":85,\"breakdown\":{\"keywords\":20,\"action_verbs\":18,\"achievements\":15,\"structure\":17,\"skills\":15},\"suggestions\":[\"suggestion1\",\"suggestion2\"],\"missing_keywords\":[\"keyword1\",\"keyword2\"]}'\n    }\n  ],\n  temperature: 0.3,\n  max_tokens: 1024\n};\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json',\n    'Accept': 'application/json'\n  },\n  body: JSON.stringify(bodyObj),\n  returnFullResponse: false,\n  ignoreHttpStatusErrors: false\n});\n\nconst parsed = typeof response === 'string' ? JSON.parse(response) : response;\nconst choice = parsed.choices[0];\n\nlet rawContent = choice.message.content\n  || choice.message.reasoning_content\n  || choice.message.reasoning\n  || '';\n\nconst cleaned = rawContent\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .trim();\n\nconst jsonStart = cleaned.indexOf('{');\nconst jsonEnd = cleaned.lastIndexOf('}');\n\nlet scoreData = { score: 85, suggestions: [], missing_keywords: [] };\nif (jsonStart !== -1 && jsonEnd !== -1) {\n  try {\n    scoreData = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));\n  } catch(e) {\n    // keep default\n  }\n}\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    resume_data: data.resume_data,\n    match_score: data.match_score,\n    ats_score: scoreData.score || 85,\n    score_breakdown: scoreData.breakdown || {},\n    suggestions: scoreData.suggestions || [],\n    missing_keywords: scoreData.missing_keywords || [],\n    iteration: data.iteration || 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        -16
+      ],
+      "id": "c3f679f6-7f01-4574-b8de-6349b79a2a9b",
+      "name": "Score ATS"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst iteration = (data.iteration || 0) + 1;\nconst needsRefinement = data.ats_score < 85 && iteration < 3;\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    resume_data: data.resume_data,\n    match_score: data.match_score,\n    ats_score: data.ats_score,\n    score_breakdown: data.score_breakdown || {},\n    suggestions: data.suggestions || [],\n    missing_keywords: data.missing_keywords || [],\n    iteration: iteration,\n    needs_refinement: needsRefinement\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -240
+      ],
+      "id": "5691a814-f94c-4697-b340-e3a6f0bc0460",
+      "name": "Check Score"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c5e05e52-65fc-412c-88ef-05033500d86e",
+              "leftValue": "={{ $json.needs_refinement }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "1e9020e4-1d69-4761-acdc-d308cf32bfca",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        816,
+        -240
+      ],
+      "id": "17e6d90a-56ce-4916-89e0-062abfa55959",
+      "name": "Score Gate"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst r = data.resume_data;\n\nconst filename = 'jd_resume_' + data.user_id + '_' + Date.now() + '.pdf';\n\nconst html = `<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"UTF-8\">\n<style>\n  * { margin: 0; padding: 0; box-sizing: border-box; }\n  body { font-family: Arial, sans-serif; font-size: 13px; color: #222; padding: 40px 50px; max-width: 850px; margin: 0 auto; }\n  h1 { font-size: 26px; font-weight: 700; color: #1a1a2e; }\n  .contact-line { font-size: 12px; color: #555; margin-top: 4px; }\n  .section { margin-top: 20px; }\n  .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #1a1a2e; border-bottom: 2px solid #1a1a2e; padding-bottom: 3px; margin-bottom: 10px; }\n  .summary { font-size: 13px; line-height: 1.6; color: #444; }\n  .job { margin-bottom: 14px; }\n  .job-header { display: flex; justify-content: space-between; }\n  .job-title { font-weight: 700; }\n  .job-company { font-size: 12px; color: #555; margin-top: 1px; }\n  .job-dates { font-size: 12px; color: #777; }\n  ul { padding-left: 16px; margin-top: 5px; }\n  ul li { margin-bottom: 3px; line-height: 1.5; }\n  .edu-item { display: flex; justify-content: space-between; margin-bottom: 8px; }\n  .degree { font-weight: 700; }\n  .institution { font-size: 12px; color: #555; }\n  .edu-right { font-size: 12px; color: #777; text-align: right; }\n  .skills-grid { display: flex; flex-wrap: wrap; gap: 6px; }\n  .skill-tag { background: #f0f4ff; color: #1a1a2e; padding: 3px 10px; border-radius: 12px; font-size: 12px; border: 1px solid #d0d8ff; }\n  .project { margin-bottom: 12px; }\n  .project-name { font-weight: 700; }\n  .project-tech { font-size: 11px; color: #777; font-style: italic; margin-top: 2px; }\n  .project-desc { font-size: 12px; color: #444; margin-top: 3px; line-height: 1.5; }\n  .scores { position: fixed; top: 10px; right: 10px; display: flex; gap: 6px; }\n  .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: white; }\n  .ats { background: #16a34a; }\n  .match { background: #2563eb; }\n</style>\n</head>\n<body>\n  <div class=\"scores\">\n    <span class=\"badge ats\">ATS: ${data.ats_score}/100</span>\n    <span class=\"badge match\">Match: ${data.match_score || 0}%</span>\n  </div>\n\n  <h1>${r.full_name || ''}</h1>\n  <div class=\"contact-line\">\n    ${[data.profile && data.profile.email, data.profile && data.profile.phone, data.profile && data.profile.location, data.profile && data.profile.linkedin, data.profile && data.profile.github].filter(Boolean).join(' · ')}\n  </div>\n\n  ${r.summary ? `<div class=\"section\"><div class=\"section-title\">Summary</div><p class=\"summary\">${r.summary}</p></div>` : ''}\n\n  ${(r.experience || []).length > 0 ? `\n  <div class=\"section\">\n    <div class=\"section-title\">Experience</div>\n    ${(r.experience || []).map(exp => `\n      <div class=\"job\">\n        <div class=\"job-header\">\n          <div><div class=\"job-title\">${exp.role || ''}</div><div class=\"job-company\">${exp.company || ''}</div></div>\n          <div class=\"job-dates\">${exp.dates || ''}</div>\n        </div>\n        <ul>${(exp.bullets || []).map(b => `<li>${b}</li>`).join('')}</ul>\n      </div>\n    `).join('')}\n  </div>` : ''}\n\n  ${(r.education || []).length > 0 ? `\n  <div class=\"section\">\n    <div class=\"section-title\">Education</div>\n    ${(r.education || []).map(edu => `\n      <div class=\"edu-item\">\n        <div><div class=\"degree\">${edu.degree || ''} in ${edu.field || ''}</div><div class=\"institution\">${edu.institution || ''}</div></div>\n        <div class=\"edu-right\">${edu.year || ''}${edu.grade ? '<br/>Grade: ' + edu.grade : ''}</div>\n      </div>\n    `).join('')}\n  </div>` : ''}\n\n  ${(r.skills || []).length > 0 ? `\n  <div class=\"section\">\n    <div class=\"section-title\">Skills</div>\n    <div class=\"skills-grid\">${(r.skills || []).map(s => `<span class=\"skill-tag\">${s}</span>`).join('')}</div>\n  </div>` : ''}\n\n  ${(r.projects || []).length > 0 ? `\n  <div class=\"section\">\n    <div class=\"section-title\">Projects</div>\n    ${(r.projects || []).map(p => `\n      <div class=\"project\">\n        <div class=\"project-name\">${p.name || ''} ${p.github ? '<a href=\"' + p.github + '\" style=\"font-size:11px;color:#3b82f6;\">[GitHub]</a>' : ''}</div>\n        <div class=\"project-tech\">${p.tech || ''}</div>\n        <div class=\"project-desc\">${p.description || ''}</div>\n      </div>\n    `).join('')}\n  </div>` : ''}\n\n</body>\n</html>`;\n\nreturn [{\n  json: {\n    ...data,\n    html: html,\n    filename: filename\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        816,
+        0
+      ],
+      "id": "c379aa73-9731-41d8-be51-fef38678cdb5",
+      "name": "Build HTML Template"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst html = data.html;\n\n// Convert HTML string to binary buffer\nconst binaryData = await this.helpers.prepareBinaryData(\n  Buffer.from(html, 'utf-8'),\n  'index.html',\n  'text/html'\n);\n\nreturn [{\n  json: { ...data },\n  binary: {\n    data: binaryData\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "5afd619d-8924-4cce-a305-69b7874371d2",
+      "name": "Convert HTML to Binary"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://gotenberg:3000/forms/chromium/convert/html",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "files",
+              "inputDataFieldName": "data"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1024,
+        -240
+      ],
+      "id": "51a0a619-ff2a-4dc6-b34e-7cee96815bdf",
+      "name": "Generate PDF"
+    },
+    {
+      "parameters": {
+        "jsCode": "const bucketName = \"resume-builder-pdfs-t23\";\nconst region = \"ap-south-1\";\n\nconst htmlData = $('Build HTML Template').first().json;\nconst userId = htmlData.user_id;\nconst filename = htmlData.filename;\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: $('Check Score').first().json.ats_score,\n    match_score: htmlData.match_score || 0,\n    filename: filename\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1232,
+        0
+      ],
+      "id": "e200dacb-c6b2-4b75-becb-b30c3d1b2589",
+      "name": "Build S3 URL"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cG9zZm51c2Vsc3lqZWpqaHRlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTQ5NDczNywiZXhwIjoyMDk1MDcwNzM3fQ.ENlFQsNPDctsaODUM4g1ano44A8KjUVJilgOcLkz-fw\";\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: supabaseUrl + '/rest/v1/resumes',\n  headers: {\n    'apikey': serviceRoleKey,\n    'Authorization': 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n  },\n  body: JSON.stringify({\n    user_id: data.user_id,\n    type: 'jd_tailored',\n    s3_url: data.s3_url,\n    ats_score: data.ats_score,\n    match_score: data.match_score\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true\n});\n\nconst parsed = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;\n\nif (response.statusCode !== 201) {\n  throw new Error('Supabase error ' + response.statusCode + ': ' + JSON.stringify(parsed));\n}\n\nreturn [{\n  json: {\n    success: true,\n    resume_id: parsed[0] ? parsed[0].id : null,\n    user_id: data.user_id,\n    s3_url: data.s3_url,\n    ats_score: data.ats_score,\n    match_score: data.match_score\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1456,
+        0
+      ],
+      "id": "d296fcf2-5f31-4ded-945b-01de16843236",
+      "name": "Save to Supabase"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"s3_url\": \"={{ $json.s3_url }}\",\n  \"ats_score\": \"={{ $json.ats_score }}\",\n  \"match_score\": \"={{ $json.match_score }}\"\n}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1456,
+        -240
+      ],
+      "id": "0ab906cb-0112-4fe2-a850-c70432de9fae",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $input.first().json.body;\n\nif (!body.user_id || !body.jd_text) {\n  throw new Error('Missing user_id or jd_text. Received: ' + JSON.stringify(body));\n}\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp4cG9zZm51c2Vsc3lqZWpqaHRlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTQ5NDczNywiZXhwIjoyMDk1MDcwNzM3fQ.ENlFQsNPDctsaODUM4g1ano44A8KjUVJilgOcLkz-fw\";\n\n// Fetch profile from Supabase\nlet profile = {};\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'GET',\n    url: supabaseUrl + '/rest/v1/profiles?user_id=eq.' + body.user_id + '&select=*',\n    headers: {\n      'apikey': serviceRoleKey,\n      'Authorization': 'Bearer ' + serviceRoleKey,\n      'Content-Type': 'application/json'\n    },\n    returnFullResponse: false,\n    ignoreHttpStatusErrors: true\n  });\n  const parsed = typeof response === 'string' ? JSON.parse(response) : response;\n  profile = parsed[0] || {};\n} catch(e) {\n  // Continue with empty profile if fetch fails\n  profile = {};\n}\n\n// If no profile in Supabase, use test profile so workflow still runs\nif (!profile || !profile.skills) {\n  profile = {\n    full_name: \"Test User\",\n    email: \"test@email.com\",\n    phone: \"+91 98765 43210\",\n    location: \"Mumbai, India\",\n    linkedin: \"linkedin.com/in/testuser\",\n    github: \"github.com/testuser\",\n    skills: [\"Docker\", \"Kubernetes\", \"AWS\", \"Terraform\", \"CI/CD\", \"Jenkins\", \"GitHub Actions\", \"Linux\", \"Python\", \"Bash\", \"Prometheus\", \"Grafana\", \"Helm\", \"ArgoCD\"],\n    experience: [{\"company\": \"Tech Corp\", \"role\": \"DevOps Engineer\", \"start_date\": \"2022-01\", \"end_date\": \"2024-01\", \"description\": \"Managed Kubernetes clusters on AWS EKS. Built CI/CD pipelines reducing deployment time by 50%. Automated infrastructure with Terraform.\"}],\n    education: [{\"institution\": \"Mumbai University\", \"degree\": \"B.Tech\", \"field\": \"Computer Science\", \"start_year\": \"2018\", \"end_year\": \"2022\", \"grade\": \"8.5 CGPA\"}],\n    projects: [{\"name\": \"K8s Infra Automation\", \"description\": \"Automated Kubernetes infrastructure deployment using Terraform and ArgoCD\", \"tech_stack\": \"Kubernetes, Terraform, ArgoCD, AWS\"}]\n  };\n}\n\nreturn [{\n  json: {\n    user_id: body.user_id,\n    jd_text: body.jd_text,\n    profile: profile\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -64
+      ],
+      "id": "a249717e-6d77-4827-8619-339a190a49a9",
+      "name": "Parse and Fetch"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst apiKey = \"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\";\n\n// Step 1 — Extract keywords from JD using NVIDIA\nconst extractBody = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    {\n      role: 'system',\n      content: 'You are a job description analyst. Return valid JSON only. No markdown. No explanation.'\n    },\n    {\n      role: 'user',\n      content: 'Extract key information from this job description: ' + data.jd_text + '. Return ONLY this JSON structure: {\"role_title\":\"string\",\"required_skills\":[\"skill1\",\"skill2\"],\"tech_stack\":[\"tech1\",\"tech2\"],\"keywords_for_ats\":[\"keyword1\",\"keyword2\"],\"experience_level\":\"junior/mid/senior\"}'\n    }\n  ],\n  temperature: 0.3,\n  max_tokens: 1024\n};\n\nlet jdData = { role_title: '', required_skills: [], tech_stack: [], keywords_for_ats: [], experience_level: 'mid' };\n\ntry {\n  const extractResponse = await this.helpers.httpRequest({\n    method: 'POST',\n    url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n    headers: {\n      'Authorization': 'Bearer ' + apiKey,\n      'Content-Type': 'application/json',\n      'Accept': 'application/json'\n    },\n    body: JSON.stringify(extractBody),\n    returnFullResponse: false,\n    ignoreHttpStatusErrors: false\n  });\n\n  const extractParsed = typeof extractResponse === 'string' ? JSON.parse(extractResponse) : extractResponse;\n  const extractChoice = extractParsed.choices[0];\n  let extractRaw = extractChoice.message.content || extractChoice.message.reasoning_content || extractChoice.message.reasoning || '';\n  \n  extractRaw = extractRaw.replace(/```json\\n?/gi, '').replace(/```\\n?/gi, '').trim();\n  const s = extractRaw.indexOf('{');\n  const e = extractRaw.lastIndexOf('}');\n  if (s !== -1 && e !== -1) {\n    jdData = JSON.parse(extractRaw.substring(s, e + 1));\n  }\n} catch(err) {\n  // If extraction fails continue with empty jdData\n}\n\n// Step 2 — Calculate gap analysis\nconst userSkills = (data.profile.skills || []).map(s => s.toLowerCase());\nconst jdKeywords = (jdData.keywords_for_ats || []).map(k => k.toLowerCase());\n\nconst matchedKeywords = jdKeywords.filter(k => userSkills.some(s => s.includes(k) || k.includes(s)));\nconst missingKeywords = jdKeywords.filter(k => !userSkills.some(s => s.includes(k) || k.includes(s)));\nconst matchScore = jdKeywords.length > 0 ? Math.round((matchedKeywords.length / jdKeywords.length) * 100) : 50;\n\n// Step 3 — Build the resume prompt directly here\nconst roleTitle = jdData.role_title || 'DevOps Engineer';\nconst keywords = (jdData.keywords_for_ats || []).join(', ') || 'Docker, Kubernetes, AWS, Terraform, CI/CD';\nconst techStack = (jdData.tech_stack || []).join(', ') || 'AWS, Docker, Kubernetes';\nconst profileStr = JSON.stringify(data.profile);\n\nconst userMessage = 'Create a professional ATS-optimized resume tailored for this job role: ' + roleTitle + '. You MUST include these keywords naturally throughout: ' + keywords + '. Tech stack required: ' + techStack + '. Candidate profile data: ' + profileStr + '. Instructions: Use strong action verbs, quantify all achievements with numbers, ensure 90+ ATS score. Return ONLY valid JSON with exactly this structure: {\"full_name\":\"string\",\"summary\":\"2-3 sentence summary mentioning ' + roleTitle + '\",\"experience\":[{\"company\":\"string\",\"role\":\"string\",\"dates\":\"string\",\"bullets\":[\"quantified achievement 1\",\"quantified achievement 2\",\"quantified achievement 3\"]}],\"education\":[{\"degree\":\"string\",\"field\":\"string\",\"institution\":\"string\",\"year\":\"string\",\"grade\":\"string\"}],\"skills\":[\"skill1\",\"skill2\"],\"projects\":[{\"name\":\"string\",\"description\":\"string\",\"tech\":\"string\",\"github\":\"string\"}]}';\n\nconst systemMessage = 'You are an expert resume writer specializing in cloud engineering and DevOps roles. You create highly optimized ATS-friendly resumes. Always respond with valid JSON only. No markdown. No explanation. No code blocks. No conversational text.';\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    jd_text: data.jd_text,\n    jd_data: jdData,\n    match_score: matchScore,\n    matched_keywords: matchedKeywords,\n    missing_keywords: missingKeywords,\n    systemMessage: systemMessage,\n    userMessage: userMessage,\n    iteration: 0\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        -240
+      ],
+      "id": "171b6068-2f8b-4a18-ac8a-af0b5836abd5",
+      "name": "Analyse JD and Build Prompt"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse and Fetch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Tailored Resume": {
+      "main": [
+        [
+          {
+            "node": "Score ATS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload a file": {
+      "main": [
+        [
+          {
+            "node": "Build S3 URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score ATS": {
+      "main": [
+        [
+          {
+            "node": "Check Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Score": {
+      "main": [
+        [
+          {
+            "node": "Score Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Score Gate": {
+      "main": [
+        [
+          {
+            "node": "Build Tailored Resume",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Build HTML Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build HTML Template": {
+      "main": [
+        [
+          {
+            "node": "Convert HTML to Binary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert HTML to Binary": {
+      "main": [
+        [
+          {
+            "node": "Generate PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build S3 URL": {
+      "main": [
+        [
+          {
+            "node": "Save to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and Fetch": {
+      "main": [
+        [
+          {
+            "node": "Analyse JD and Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse JD and Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Build Tailored Resume",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a80bab5d-db3c-4351-bf88-86a0e0c0b58f",
+  "meta": {
+    "instanceId": "c929c734d6eed994ee8b5332e41aedafb118d597f4e027e68c16c5a044273a20"
+  },
+  "id": "mVUhy8WoAaOWuTI4",
+  "tags": []
+}
