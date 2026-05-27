@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        32,
-        -192
+        -576,
+        80
       ],
-      "id": "a283112b-b961-4818-a712-6543d6977e0b",
+      "id": "35e290c2-b704-483a-be6f-939082f2ee2c",
       "name": "Webhook",
       "webhookId": "eaadff5a-52fe-4910-ac37-4e9e9c389e16"
     },
@@ -25,10 +25,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        224,
-        -192
+        -384,
+        80
       ],
-      "id": "881150bc-c6f4-41f0-8c36-32706eaa204b",
+      "id": "aaed8e2c-d5b7-4867-88ba-83135752e944",
       "name": "Parse Input"
     },
     {
@@ -38,10 +38,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        832,
-        -416
+        224,
+        -144
       ],
-      "id": "94959035-2492-4d2f-a617-4b1119879fbb",
+      "id": "962c32be-5965-4088-9cfe-1e7664dd31b0",
       "name": "Check Score"
     },
     {
@@ -73,10 +73,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        832,
-        -192
+        224,
+        80
       ],
-      "id": "1be31ce3-c645-498a-8319-229b9392ca66",
+      "id": "90348c3d-7138-46d2-91fb-f9c7b80f4532",
       "name": "Score Gate"
     },
     {
@@ -86,10 +86,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1040,
-        -192
+        432,
+        80
       ],
-      "id": "b1b0d8dc-4785-464d-9b1e-db7301ed359c",
+      "id": "36a20351-6229-4abf-aa13-5a9f707545b6",
       "name": "Build HTML Template"
     },
     {
@@ -118,10 +118,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1232,
-        -416
+        624,
+        -144
       ],
-      "id": "2157a7a0-4c60-46b8-8664-37b7d51a8fdd",
+      "id": "f87e3c28-e8b9-4ffe-993b-5a40a5f340fe",
       "name": "Generate PDF"
     },
     {
@@ -131,23 +131,23 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1040,
-        -416
+        432,
+        -144
       ],
-      "id": "5ee22eec-0bfb-4332-b427-274e010e1127",
+      "id": "5f2f7610-d4ac-4558-a731-1adbabdf880b",
       "name": "Convert HTML to Binary"
     },
     {
       "parameters": {
-        "jsCode": "const bucketName = \"resume-builder-pdfs-t23\";\nconst region = \"ap-south-1\";\n\nconst htmlData = $('Build HTML Template').first().json;\nconst userId = htmlData.user_id;\nconst filename = htmlData.filename;\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: $('Check Score').first().json.ats_score,\n    filename: filename\n  }\n}];"
+        "jsCode": "const bucketName = \"resume-builder-pdfs-t2311\";\nconst region = \"ap-southeast-2\";\n\nconst htmlData = $('Build HTML Template').first().json;\nconst userId = htmlData.user_id;\nconst filename = htmlData.filename;\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: $('Check Score').first().json.ats_score,\n    filename: filename\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1440,
-        -192
+        832,
+        80
       ],
-      "id": "2cec74be-78f9-4d66-b399-2fba47aa26c1",
+      "id": "0363f71e-4257-4b60-a589-b6a7025292d7",
       "name": "Build S3 URL"
     },
     {
@@ -161,10 +161,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1680,
-        -288
+        1072,
+        -16
       ],
-      "id": "e74b9d0a-ec2e-4d8c-af50-77f08adb71ec",
+      "id": "9bab0201-1917-4616-8984-26fafc5efc45",
       "name": "Respond to Webhook"
     },
     {
@@ -174,10 +174,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        448,
-        -192
+        -160,
+        80
       ],
-      "id": "bfc5db6e-5286-4e0d-b526-7ffc59c5a5db",
+      "id": "6a4a48b2-a55f-430a-8931-47c003a59c4c",
       "name": "Prepare Prompt"
     },
     {
@@ -187,10 +187,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        -416
+        16,
+        -144
       ],
-      "id": "a12b0867-e97a-4dda-b604-1567f457c1f0",
+      "id": "0c502ee3-5c9c-480c-9204-0d89ca69791c",
       "name": "Score ATS1"
     },
     {
@@ -203,14 +203,14 @@
       "type": "n8n-nodes-base.awsS3",
       "typeVersion": 2,
       "position": [
-        1232,
-        -192
+        624,
+        80
       ],
-      "id": "f0b0c638-8528-4d63-a8ba-66ccf4db9908",
+      "id": "54b96bf6-c8cf-435c-9afc-6aa8bf21f59f",
       "name": "Upload a file",
       "credentials": {
         "aws": {
-          "id": "QDk4zwQOqsV5NpiI",
+          "id": "SLn08B6Bh5C2L6E0",
           "name": "AWS (IAM) account"
         }
       }
@@ -222,10 +222,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1440,
-        -416
+        832,
+        -144
       ],
-      "id": "5bbcbc02-7733-4879-9bd8-36d099cc79e2",
+      "id": "7acd7b9f-fb5b-4a4b-9109-5aaf9b9c110b",
       "name": "Save to Supabase"
     },
     {
@@ -235,10 +235,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        640,
-        -192
+        32,
+        80
       ],
-      "id": "2a437e75-8e2f-4ca9-be18-7191bd48bc33",
+      "id": "7cbef4d5-e449-4706-935f-08389f296644",
       "name": "Generate Resume"
     }
   ],
@@ -403,11 +403,11 @@
     "callerPolicy": "workflowsFromSameOwner",
     "availableInMCP": false
   },
-  "versionId": "5a71bfd4-5024-4bde-b1c1-f6e0889014b6",
+  "versionId": "5dbc8ead-c05a-4ef9-b723-21fe2c680cb6",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "c929c734d6eed994ee8b5332e41aedafb118d597f4e027e68c16c5a044273a20"
   },
-  "id": "jzDGymhvdX4lyjA2",
+  "id": "4oPpSFYwJ0fsTiCi",
   "tags": []
 }

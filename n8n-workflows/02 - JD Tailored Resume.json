@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        0,
-        -64
+        -400,
+        176
       ],
-      "id": "ed4ecbe9-3b45-4563-a9f9-858c927daf9f",
+      "id": "b464b073-2990-45c9-b2d9-d68076f6cc60",
       "name": "Webhook",
       "webhookId": "91ed5980-2a1d-48fa-a878-3838d411bb89"
     },
@@ -25,10 +25,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        -16
+        0,
+        224
       ],
-      "id": "dd905b5d-e73d-47a7-b081-90a1df70ac2e",
+      "id": "17c8770e-44a1-42c8-9041-331a72e326c3",
       "name": "Build Tailored Resume"
     },
     {
@@ -41,14 +41,14 @@
       "type": "n8n-nodes-base.awsS3",
       "typeVersion": 2,
       "position": [
-        1232,
-        -240
+        832,
+        0
       ],
-      "id": "44d9f076-4629-4cf6-9c0c-aee56fbea768",
+      "id": "c43f5977-b0e6-46c0-8fa0-fea4e3d81d35",
       "name": "Upload a file",
       "credentials": {
         "aws": {
-          "id": "QDk4zwQOqsV5NpiI",
+          "id": "SLn08B6Bh5C2L6E0",
           "name": "AWS (IAM) account"
         }
       }
@@ -60,10 +60,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        608,
-        -16
+        208,
+        224
       ],
-      "id": "c3f679f6-7f01-4574-b8de-6349b79a2a9b",
+      "id": "624b5198-f49a-4ca2-b3f3-1391b346c0e1",
       "name": "Score ATS"
     },
     {
@@ -73,10 +73,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        624,
-        -240
+        224,
+        0
       ],
-      "id": "5691a814-f94c-4697-b340-e3a6f0bc0460",
+      "id": "64f54daf-7b7d-4d9c-85d1-bef9eb03c61a",
       "name": "Check Score"
     },
     {
@@ -118,10 +118,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        816,
-        -240
+        416,
+        0
       ],
-      "id": "17e6d90a-56ce-4916-89e0-062abfa55959",
+      "id": "56d43804-a8ce-4732-83e4-1d36c8067112",
       "name": "Score Gate"
     },
     {
@@ -131,10 +131,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        816,
-        0
+        416,
+        240
       ],
-      "id": "c379aa73-9731-41d8-be51-fef38678cdb5",
+      "id": "277a10bd-0af5-422d-9727-2e11cf56bd63",
       "name": "Build HTML Template"
     },
     {
@@ -144,10 +144,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1024,
-        0
+        624,
+        240
       ],
-      "id": "5afd619d-8924-4cce-a305-69b7874371d2",
+      "id": "c75a7530-3b4a-4d2e-a016-3203d7388ae6",
       "name": "Convert HTML to Binary"
     },
     {
@@ -176,10 +176,10 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        1024,
-        -240
+        624,
+        0
       ],
-      "id": "51a0a619-ff2a-4dc6-b34e-7cee96815bdf",
+      "id": "f88b17b2-c382-4060-9ec1-ebba00f659a2",
       "name": "Generate PDF"
     },
     {
@@ -189,10 +189,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1232,
-        0
+        832,
+        240
       ],
-      "id": "e200dacb-c6b2-4b75-becb-b30c3d1b2589",
+      "id": "36889ccb-0e6d-4a29-82d5-cc18e0cc3ad4",
       "name": "Build S3 URL"
     },
     {
@@ -202,10 +202,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1456,
-        0
+        1056,
+        240
       ],
-      "id": "d296fcf2-5f31-4ded-945b-01de16843236",
+      "id": "bc04f3ef-dcc6-4b04-8528-b63a7ee6ff14",
       "name": "Save to Supabase"
     },
     {
@@ -219,10 +219,10 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1456,
-        -240
+        1056,
+        0
       ],
-      "id": "0ab906cb-0112-4fe2-a850-c70432de9fae",
+      "id": "1a8a8830-cbfc-48b4-a6f8-e9b6935139c7",
       "name": "Respond to Webhook"
     },
     {
@@ -232,10 +232,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        192,
-        -64
+        -208,
+        176
       ],
-      "id": "a249717e-6d77-4827-8619-339a190a49a9",
+      "id": "ba975c7c-faf6-42a3-bc2a-0e3e128b3791",
       "name": "Parse and Fetch"
     },
     {
@@ -245,10 +245,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        400,
-        -240
+        0,
+        0
       ],
-      "id": "171b6068-2f8b-4a18-ac8a-af0b5836abd5",
+      "id": "7f709b90-127a-4347-be25-ea02edaafe72",
       "name": "Analyse JD and Build Prompt"
     }
   ],
@@ -405,15 +405,16 @@
       ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "a80bab5d-db3c-4351-bf88-86a0e0c0b58f",
+  "versionId": "70ee1867-1472-49f6-abd8-edd001096122",
   "meta": {
+    "templateCredsSetupCompleted": true,
     "instanceId": "c929c734d6eed994ee8b5332e41aedafb118d597f4e027e68c16c5a044273a20"
   },
-  "id": "mVUhy8WoAaOWuTI4",
+  "id": "YTkSUjrXJdlXsp9g",
   "tags": []
 }
