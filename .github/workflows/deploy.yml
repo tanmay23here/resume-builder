@@ -19,6 +19,7 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
+            sudo chown -R ubuntu:ubuntu ~/resume-builder/app
             cd ~/resume-builder/app
             git pull origin master
             cd frontend
