@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { triggerBaseResume } from '@/lib/n8n'
@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
 
   const [profile, setProfile] = useState({
@@ -23,6 +24,43 @@ export default function ProfilePage() {
     skills: [] as string[],
     projects: [emptyProj()]
   })
+
+  // Load existing profile on mount
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/login'); return }
+
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .single()
+
+        if (data && !error) {
+          setProfile({
+            full_name: data.full_name || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            location: data.location || '',
+            linkedin: data.linkedin || '',
+            github: data.github || '',
+            education: data.education?.length > 0 ? data.education : [emptyEdu()],
+            experience: data.experience?.length > 0 ? data.experience : [emptyExp()],
+            skills: data.skills || [],
+            projects: data.projects?.length > 0 ? data.projects : [emptyProj()]
+          })
+        }
+      } catch(e) {
+        // No profile yet — keep empty form
+      } finally {
+        setFetching(false)
+      }
+    }
+    loadProfile()
+  }, [])
 
   const update = (key: string, value: any) =>
     setProfile(prev => ({ ...prev, [key]: value }))
@@ -46,7 +84,6 @@ export default function ProfilePage() {
         return
       }
 
-      // Save profile to Supabase
       const { error: profileError } = await supabase
         .from('profiles')
         .upsert({
@@ -68,10 +105,7 @@ export default function ProfilePage() {
         throw new Error('Failed to save profile: ' + profileError.message)
       }
 
-      // Trigger n8n workflow — non-blocking, don't await
       triggerBaseResume(user.id, profile).catch(console.error)
-
-      // Redirect to dashboard immediately
       router.push('/dashboard?generating=true')
 
     } catch (err: any) {
@@ -80,9 +114,30 @@ export default function ProfilePage() {
     }
   }
 
+  // Show loading while fetching existing profile
+  if (fetching) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-500 text-sm">Loading your profile...</p>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-10">
       <div className="max-w-2xl mx-auto px-4">
+
+        <div className="mb-6 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-gray-900">
+            {profile.full_name ? `Update profile` : 'Complete your profile'}
+          </h1>
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            ← Back to dashboard
+          </button>
+        </div>
 
         {/* Progress bar */}
         <div className="mb-8">
@@ -146,7 +201,7 @@ export default function ProfilePage() {
                     <div key={key}>
                       <label className="block text-xs text-gray-500 mb-1">{label}</label>
                       <input
-                        value={(edu as any)[key]}
+                        value={(edu as any)[key] || ''}
                         onChange={e => updateArray('education', i, key, e.target.value)}
                         className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -179,7 +234,7 @@ export default function ProfilePage() {
                     <div key={key}>
                       <label className="block text-xs text-gray-500 mb-1">{label}</label>
                       <input
-                        value={(exp as any)[key]}
+                        value={(exp as any)[key] || ''}
                         onChange={e => updateArray('experience', i, key, e.target.value)}
                         className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -187,13 +242,12 @@ export default function ProfilePage() {
                   ))}
                   <div>
                     <label className="block text-xs text-gray-500 mb-1">
-                      What did you do? Be detailed — AI will refine and quantify this
+                      What did you do? Be detailed — AI will refine this
                     </label>
                     <textarea
                       rows={4}
-                      value={exp.description}
+                      value={exp.description || ''}
                       onChange={e => updateArray('experience', i, 'description', e.target.value)}
-                      placeholder="e.g. Managed Kubernetes clusters, built CI/CD pipelines, automated infrastructure with Terraform..."
                       className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -213,13 +267,12 @@ export default function ProfilePage() {
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Skills</h2>
               <p className="text-sm text-gray-500">
-                Add skills separated by commas — e.g. Docker, Kubernetes, AWS, Terraform, CI/CD
+                Add skills separated by commas
               </p>
               <textarea
                 rows={4}
                 value={profile.skills.join(', ')}
                 onChange={e => update('skills', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
-                placeholder="Docker, Kubernetes, AWS, Terraform, Jenkins, GitHub Actions, Linux, Python..."
                 className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               {profile.skills.length > 0 && (
@@ -250,7 +303,7 @@ export default function ProfilePage() {
                     <div key={key}>
                       <label className="block text-xs text-gray-500 mb-1">{label}</label>
                       <input
-                        value={(proj as any)[key]}
+                        value={(proj as any)[key] || ''}
                         onChange={e => updateArray('projects', i, key, e.target.value)}
                         className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />
@@ -262,9 +315,8 @@ export default function ProfilePage() {
                     </label>
                     <textarea
                       rows={3}
-                      value={proj.description}
+                      value={proj.description || ''}
                       onChange={e => updateArray('projects', i, 'description', e.target.value)}
-                      placeholder="e.g. Built a Kubernetes-based deployment pipeline that reduced deployment time by 60%..."
                       className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -279,12 +331,8 @@ export default function ProfilePage() {
             </div>
           )}
 
-          {/* Error */}
-          {error && (
-            <p className="text-red-500 text-sm mt-4">{error}</p>
-          )}
+          {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
 
-          {/* Navigation */}
           <div className="flex justify-between mt-8">
             <button
               onClick={() => setStep(s => s - 1)}
@@ -293,7 +341,6 @@ export default function ProfilePage() {
             >
               Back
             </button>
-
             {step < STEPS.length - 1 ? (
               <button
                 onClick={() => setStep(s => s + 1)}
