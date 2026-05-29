@@ -17,6 +17,8 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
+  // Raw, free-typing text for the skills field. Parsed into the skills array on blur.
+  const [skillsText, setSkillsText] = useState('')
 
   const [profile, setProfile] = useState({
     full_name: '', email: '', phone: '', location: '', linkedin: '', github: '',
@@ -46,6 +48,7 @@ export default function ProfilePage() {
             skills: data.skills || [],
             projects: data.projects?.length > 0 ? data.projects : [emptyProj()]
           })
+          setSkillsText((data.skills || []).join(', '))
         }
       } catch(e) {
         // No profile yet
@@ -64,9 +67,18 @@ export default function ProfilePage() {
     update(key, arr)
   }
 
+  // Parse the raw skills text into a clean string array.
+  const parseSkills = (text: string) =>
+    text.split(',').map(s => s.trim()).filter(Boolean)
+
   async function handleSubmit() {
     setLoading(true)
     setError('')
+    // Ensure the latest typed skills are captured even if blur didn't fire.
+    const parsedSkills = parseSkills(skillsText)
+    if (parsedSkills.join('|') !== profile.skills.join('|')) {
+      update('skills', parsedSkills)
+    }
     try {
       const supabase = createClient()
       const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -81,7 +93,7 @@ export default function ProfilePage() {
         github: profile.github,
         education: profile.education,
         experience: profile.experience,
-        skills: profile.skills,
+        skills: parsedSkills,
         projects: profile.projects,
         updated_at: new Date().toISOString()
       })
@@ -316,8 +328,9 @@ export default function ProfilePage() {
                 <textarea
                   id="skills-input"
                   rows={4}
-                  value={profile.skills.join(', ')}
-                  onChange={e => update('skills', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                  value={skillsText}
+                  onChange={e => setSkillsText(e.target.value)}
+                  onBlur={() => update('skills', parseSkills(skillsText))}
                   placeholder="React, TypeScript, Node.js, Python, AWS, Docker..."
                   className="input-base"
                   style={{ resize: 'vertical', lineHeight: 1.7 }}
@@ -326,11 +339,11 @@ export default function ProfilePage() {
                   Add languages, frameworks, tools, and soft skills
                 </p>
               </div>
-              {profile.skills.length > 0 && (
+              {parseSkills(skillsText).length > 0 && (
                 <div>
                   <p className="form-label" style={{ marginBottom: 10 }}>Preview</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {profile.skills.map(skill => (
+                    {parseSkills(skillsText).map(skill => (
                       <span key={skill} className="skill-chip">{skill}</span>
                     ))}
                   </div>
