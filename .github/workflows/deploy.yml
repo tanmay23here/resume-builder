@@ -10,14 +10,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Deploy to EC2
+      - name: Build frontend on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 10m
           script: |
             sudo chown -R ubuntu:ubuntu ~/resume-builder/app
             cd ~/resume-builder/app
@@ -25,10 +26,22 @@ jobs:
             cd frontend
             npm install
             npm run build
-            pkill -f "npm start" || true
-            fuser -k 3001/tcp || true
+            echo "Build complete"
+
+      - name: Restart services on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 5m
+          script: |
+            sudo fuser -k 3001/tcp || true
             sleep 2
             cd ~/resume-builder
             docker compose down
+            sleep 3
             docker compose up -d
+            sleep 5
             docker compose ps
+            echo "All services restarted"
