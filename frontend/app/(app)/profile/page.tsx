@@ -212,8 +212,18 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {profile.education.map((edu, i) => (
                 <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', background: 'var(--bg-input)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <span className="badge badge-indigo">Education #{i + 1}</span>
+                    {profile.education.length > 1 && (
+                      <button
+                        onClick={() => update('education', profile.education.filter((_, idx) => idx !== i))}
+                        title="Remove"
+                        style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontSize: '0.7rem', fontWeight: 600, transition: 'background 0.15s' }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Remove
+                      </button>
+                    )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
                     {([
@@ -248,8 +258,18 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {profile.experience.map((exp, i) => (
                 <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', background: 'var(--bg-input)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <span className="badge badge-green">Experience #{i + 1}</span>
+                    {profile.experience.length > 1 && (
+                      <button
+                        onClick={() => update('experience', profile.experience.filter((_, idx) => idx !== i))}
+                        title="Remove"
+                        style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontSize: '0.7rem', fontWeight: 600, transition: 'background 0.15s' }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Remove
+                      </button>
+                    )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
                     {([
@@ -324,8 +344,18 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
               {profile.projects.map((proj, i) => (
                 <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', background: 'var(--bg-input)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                     <span className="badge badge-purple">Project #{i + 1}</span>
+                    {profile.projects.length > 1 && (
+                      <button
+                        onClick={() => update('projects', profile.projects.filter((_, idx) => idx !== i))}
+                        title="Remove"
+                        style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontSize: '0.7rem', fontWeight: 600, transition: 'background 0.15s' }}
+                      >
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+                        Remove
+                      </button>
+                    )}
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
                     {([
