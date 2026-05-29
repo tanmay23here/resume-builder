@@ -61,103 +61,150 @@ function DashboardContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading...</p>
+      <div className="page-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
+          <div className="spinner-indigo" style={{ width: 32, height: 32, borderWidth: 3 }} />
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Loading your workspace...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10">
-      <div className="max-w-3xl mx-auto px-4">
+    <div className="page-bg" style={{ minHeight: '100vh' }}>
 
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Resumes</h1>
-            <p className="text-sm text-gray-500 mt-1">{user?.email}</p>
+      {/* Navbar */}
+      <nav className="navbar">
+        <div style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px', height: 60, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div style={{
+              width: 32, height: 32, borderRadius: 8,
+              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 14, fontWeight: 800, color: '#fff', boxShadow: '0 2px 10px rgba(99,102,241,0.35)'
+            }}>R</div>
+            <span style={{ fontWeight: 700, color: 'var(--text-primary)', fontSize: '0.95rem' }}>ResumeAI</span>
           </div>
-          <Link href="/profile"
-            className="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
-            Update profile
-          </Link>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.email}</span>
+            <Link href="/profile" className="btn-primary" style={{ padding: '7px 16px', fontSize: '0.8rem' }}>
+              Edit Profile
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div style={{ maxWidth: 900, margin: '0 auto', padding: '40px 24px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 32 }} className="animate-fade-in">
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>
+            My Resumes
+          </h1>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+            AI-generated, ATS-optimized resumes tailored to your profile
+          </p>
         </div>
 
+        {/* Generating banner */}
         {generating && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center gap-3">
-            <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+          <div className="info-banner animate-fade-in" style={{ marginBottom: 24 }}>
+            <div className="spinner-indigo" />
             <div>
-              <p className="text-sm font-medium text-blue-800">Generating your resume...</p>
-              <p className="text-xs text-blue-600 mt-0.5">AI is optimizing for ATS. Takes 30–60 seconds. Page updates automatically.</p>
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-light)', marginBottom: 2 }}>
+                AI is crafting your resume...
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                Optimizing for ATS systems · Takes 30–60 seconds · Page updates automatically
+              </p>
             </div>
           </div>
         )}
 
-        <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-base font-semibold text-gray-900">Tailor for a job</h2>
-              <p className="text-sm text-gray-500 mt-1">Paste a job description and get a resume tailored to that role</p>
+        {/* Action card — Tailor for JD */}
+        <div className="card card-hover animate-fade-in" style={{ marginBottom: 28, padding: '24px 28px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+                <h2 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)' }}>Tailor for a job</h2>
+                <span className="badge badge-green">Recommended</span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                Paste a job description — AI analyses it and rewrites your resume to match the role perfectly
+              </p>
             </div>
-            <Link href="/jd-match"
-              className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 whitespace-nowrap ml-4">
+            <Link href="/jd-match" className="btn-green" style={{ whiteSpace: 'nowrap' }}>
               Paste JD →
             </Link>
           </div>
         </div>
 
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Generated resumes</h2>
+        {/* Resumes section */}
+        <div>
+          <p className="section-title" style={{ marginBottom: 16 }}>Generated resumes</p>
 
           {resumes.length === 0 && !generating && (
-            <div className="bg-white rounded-xl border p-10 text-center">
-              <p className="text-gray-400 text-sm">No resumes yet.</p>
-              <Link href="/profile" className="inline-block mt-3 text-sm text-blue-600 hover:underline">
-                Fill your profile to generate your first resume →
+            <div className="card animate-fade-in" style={{ padding: 48, textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: 14, background: 'rgba(99,102,241,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              </div>
+              <p style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 6 }}>No resumes yet</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 20 }}>Fill out your profile and let AI generate your first resume</p>
+              <Link href="/profile" className="btn-primary" style={{ display: 'inline-flex' }}>
+                Complete your profile →
               </Link>
             </div>
           )}
 
-          {resumes.map(resume => (
-            <div key={resume.id} className="bg-white rounded-xl border shadow-sm p-5">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                      resume.type === 'base'
-                        ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                        : 'bg-green-50 text-green-700 border border-green-200'
-                    }`}>
-                      {resume.type === 'base' ? 'Base resume' : 'JD tailored'}
-                    </span>
-                    {resume.ats_score && (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                        ATS {resume.ats_score}/100
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {resumes.map((resume, idx) => (
+              <div
+                key={resume.id}
+                className="card card-hover animate-fade-in"
+                style={{ padding: '20px 24px', animationDelay: `${idx * 0.05}s` }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
+                      <span className={`badge ${resume.type === 'base' ? 'badge-indigo' : 'badge-green'}`}>
+                        {resume.type === 'base' ? '◆ Base resume' : '◈ JD tailored'}
                       </span>
-                    )}
-                    {resume.match_score && (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
-                        Match {resume.match_score}%
-                      </span>
-                    )}
+                      {resume.ats_score && (
+                        <span className="badge badge-purple">
+                          ATS {resume.ats_score}/100
+                        </span>
+                      )}
+                      {resume.match_score && (
+                        <span className="badge badge-orange">
+                          Match {resume.match_score}%
+                        </span>
+                      )}
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                      {new Date(resume.created_at).toLocaleDateString('en-IN', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
+                      })}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    {new Date(resume.created_at).toLocaleDateString('en-IN', {
-                      day: 'numeric', month: 'short', year: 'numeric',
-                      hour: '2-digit', minute: '2-digit'
-                    })}
-                  </p>
+                  <a
+                    href={resume.s3_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-primary"
+                    style={{ whiteSpace: 'nowrap', padding: '8px 16px', fontSize: '0.8rem' }}
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download PDF
+                  </a>
                 </div>
-                <a
-                  href={resume.s3_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline ml-4 whitespace-nowrap"
-                >
-                  Download PDF →
-                </a>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
       </div>
@@ -168,8 +215,8 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500 text-sm">Loading...</p>
+      <div className="page-bg" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner-indigo" style={{ width: 32, height: 32, borderWidth: 3 }} />
       </div>
     }>
       <DashboardContent />

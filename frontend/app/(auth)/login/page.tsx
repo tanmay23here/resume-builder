@@ -22,30 +22,90 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-xl shadow-sm border w-full max-w-md">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome back</h1>
-        <p className="text-gray-500 text-sm mb-6">Log in to your resume builder</p>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-            <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+    <div className="page-bg auth-layout">
+      <div className="w-full max-w-md animate-fade-in">
+
+        {/* Logo mark */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 mb-4">
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'linear-gradient(135deg, #6366f1, #4f46e5)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 16px rgba(99,102,241,0.4)',
+              fontSize: 18, fontWeight: 800, color: '#fff'
+            }}>R</div>
+            <span style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>ResumeAI</span>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input type="password" required value={password} onChange={e => setPassword(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
-          </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button type="submit" disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-700 disabled:opacity-50">
-            {loading ? 'Logging in...' : 'Log in'}
-          </button>
-        </form>
-        <p className="text-sm text-gray-500 mt-4 text-center">
-          No account? <Link href="/signup" className="text-blue-600 hover:underline">Sign up</Link>
-        </p>
+          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: 6 }}>
+            Welcome back
+          </h1>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+            Log in to continue building your perfect resume
+          </p>
+        </div>
+
+        {/* Card */}
+        <div className="card" style={{ padding: '32px' }}>
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+            <div>
+              <label className="form-label" htmlFor="login-email">Email address</label>
+              <input
+                id="login-email"
+                type="email"
+                required
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="input-base"
+              />
+            </div>
+
+            <div>
+              <label className="form-label" htmlFor="login-password">Password</label>
+              <input
+                id="login-password"
+                type="password"
+                required
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="input-base"
+              />
+            </div>
+
+            {error && (
+              <div className="error-box">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {error}
+              </div>
+            )}
+
+            <button type="submit" disabled={loading} className="btn-primary" style={{ width: '100%', padding: '12px 20px', marginTop: 4 }}>
+              {loading ? <><span className="spinner" /> Logging in...</> : 'Log in →'}
+            </button>
+          </form>
+
+          <div className="divider" />
+
+          <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            No account?{' '}
+            <Link href="/signup" style={{ color: 'var(--accent-light)', fontWeight: 600, textDecoration: 'none' }}>
+              Create one free
+            </Link>
+          </p>
+        </div>
+
+        {/* Footer trust indicators */}
+        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'center', gap: 24, flexWrap: 'wrap' }}>
+          {['ATS Optimized', 'AI-Powered', 'Secure'].map(item => (
+            <span key={item} style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 4 }}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+              {item}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   )
