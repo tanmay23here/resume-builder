@@ -25,15 +25,10 @@ jobs:
             cd frontend
             npm install
             npm run build
+            pkill -f "npm start" || true
+            fuser -k 3001/tcp || true
+            sleep 2
             cd ~/resume-builder
             docker compose down
             docker compose up -d
             docker compose ps
-            pkill -f "npm start" || true
-            sleep 2
-            cd ~/resume-builder/app/frontend
-            nohup npm start > /tmp/frontend.log 2>&1 &
-            disown
-            sleep 5
-            echo "Frontend started, checking..."
-            curl -s http://localhost:3001 > /dev/null && echo "Frontend is running" || echo "Frontend not responding yet"
