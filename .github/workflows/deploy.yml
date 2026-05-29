@@ -1,34 +1,4 @@
-name: Deploy to EC2
-
-on:
-  push:
-    branches: [master]
-
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Build frontend on EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          command_timeout: 10m
-          script: |
-            sudo chown -R ubuntu:ubuntu ~/resume-builder/app
-            cd ~/resume-builder/app
-            git pull origin master
-            cd frontend
-            npm install
-            npm run build
-            echo "Build complete"
-
-      - name: Restart services on EC2
+- name: Restart services on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -36,12 +6,12 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           command_timeout: 5m
           script: |
-            sudo fuser -k 3001/tcp || true
-            sleep 2
             cd ~/resume-builder
             docker compose down
             sleep 3
             docker compose up -d
+            sudo systemctl restart frontend
             sleep 5
             docker compose ps
+            sudo systemctl status frontend --no-pager
             echo "All services restarted"
