@@ -54,6 +54,16 @@ function DashboardContent() {
     }
   }
 
+  async function handleLogout() {
+    try {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push('/login')
+    } catch (e) {
+      console.error('Logout failed:', e)
+    }
+  }
+
   useEffect(() => {
     loadData()
   }, [])
@@ -122,6 +132,9 @@ function DashboardContent() {
             <Link href="/profile" className="btn-primary" style={{ padding: '7px 16px', fontSize: '0.8rem' }}>
               Edit Profile
             </Link>
+            <button onClick={handleLogout} className="btn-secondary" style={{ padding: '7px 16px', fontSize: '0.8rem' }}>
+              Logout
+            </button>
           </div>
         </div>
       </nav>
