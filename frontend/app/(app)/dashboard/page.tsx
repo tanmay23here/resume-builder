@@ -28,11 +28,29 @@ function DashboardContent() {
 
   async function copyLatex(code: string) {
     try {
+      // Primary: Clipboard API (requires HTTPS)
       await navigator.clipboard.writeText(code)
       setCopied(true)
       setTimeout(() => setCopied(false), 1500)
     } catch (e) {
-      // Clipboard API unavailable; user can still select manually
+      // Fallback: works on HTTP / older browsers
+      try {
+        const el = document.createElement('textarea')
+        el.value = code
+        el.style.position = 'fixed'
+        el.style.top = '0'
+        el.style.left = '0'
+        el.style.opacity = '0'
+        document.body.appendChild(el)
+        el.focus()
+        el.select()
+        document.execCommand('copy')
+        document.body.removeChild(el)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1500)
+      } catch (e2) {
+        // Both failed — user can manually select text in the box
+      }
     }
   }
 
@@ -256,9 +274,22 @@ function DashboardContent() {
                 </button>
               </div>
             </div>
-            <pre style={{ margin: 0, padding: 20, overflow: 'auto', fontSize: '0.72rem', lineHeight: 1.6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', color: 'var(--text-secondary)', background: 'var(--bg-input)', whiteSpace: 'pre', flex: 1 }}>
-              <code>{latexModal}</code>
-            </pre>
+            <textarea
+              readOnly
+              value={latexModal}
+              onFocus={e => e.target.select()}
+              style={{
+                margin: 0, padding: 20, flex: 1,
+                fontSize: '0.72rem', lineHeight: 1.7,
+                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+                color: 'var(--text-secondary)',
+                background: 'var(--bg-input)',
+                border: 'none', outline: 'none', resize: 'none',
+                whiteSpace: 'pre', overflowY: 'auto',
+                overflowX: 'auto', display: 'block', width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
           </div>
         </div>
       )}

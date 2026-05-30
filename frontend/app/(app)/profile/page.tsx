@@ -20,6 +20,8 @@ export default function ProfilePage() {
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
 
+  const [skillsText, setSkillsText] = useState('')
+
   const [profile, setProfile] = useState({
     full_name: '', email: '', phone: '', location: '', linkedin: '', github: '',
     education: [emptyEdu()],
@@ -36,8 +38,11 @@ export default function ProfilePage() {
         const supabase = createClient()
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { router.push('/login'); return }
-        const { data, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).single()
-        if (data && !error) {
+        const { data: rows, error } = await supabase.from('profiles').select('*').eq('user_id', user.id).order('updated_at', { ascending: false }).limit(1)
+        if (rows && rows.length > 0 && !error) {
+          const data = rows[0]
+          const loadedSkills = Array.isArray(data.skills) ? data.skills : []
+          setSkillsText(loadedSkills.join(', '))
           setProfile({
             full_name: data.full_name || '',
             email: data.email || '',
@@ -45,16 +50,16 @@ export default function ProfilePage() {
             location: data.location || '',
             linkedin: data.linkedin || '',
             github: data.github || '',
-            education: data.education?.length > 0 ? data.education : [emptyEdu()],
-            experience: data.experience?.length > 0 ? data.experience : [emptyExp()],
-            skills: data.skills || [],
-            projects: data.projects?.length > 0 ? data.projects : [emptyProj()],
-            achievements: data.achievements?.length > 0 ? data.achievements : [emptyAchievement()],
-            certifications: data.certifications?.length > 0 ? data.certifications : [emptyCertification()]
+            education: Array.isArray(data.education) && data.education.length > 0 ? data.education : [emptyEdu()],
+            experience: Array.isArray(data.experience) && data.experience.length > 0 ? data.experience : [emptyExp()],
+            skills: loadedSkills,
+            projects: Array.isArray(data.projects) && data.projects.length > 0 ? data.projects : [emptyProj()],
+            achievements: Array.isArray(data.achievements) && data.achievements.length > 0 ? data.achievements : [emptyAchievement()],
+            certifications: Array.isArray(data.certifications) && data.certifications.length > 0 ? data.certifications : [emptyCertification()]
           })
         }
       } catch(e) {
-        // No profile yet
+        console.error('Failed to load profile:', e)
       } finally {
         setFetching(false)
       }
@@ -326,8 +331,12 @@ export default function ProfilePage() {
                 <textarea
                   id="skills-input"
                   rows={4}
-                  value={profile.skills.join(', ')}
-                  onChange={e => update('skills', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
+                  value={skillsText}
+                  onChange={e => {
+                    const val = e.target.value
+                    setSkillsText(val)
+                    update('skills', val.split(',').map(s => s.trim()).filter(Boolean))
+                  }}
                   placeholder="React, TypeScript, Node.js, Python, AWS, Docker..."
                   className="input-base"
                   style={{ resize: 'vertical', lineHeight: 1.7 }}

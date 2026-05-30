@@ -14,7 +14,7 @@
         -592,
         224
       ],
-      "id": "5cabf99f-cf28-448c-95d5-c85bd619be37",
+      "id": "f00be9ce-94f9-4073-b73a-415f06411925",
       "name": "Webhook",
       "webhookId": "eaadff5a-52fe-4910-ac37-4e9e9c389e16"
     },
@@ -28,7 +28,7 @@
         -400,
         224
       ],
-      "id": "67b2b08c-db06-4e48-a85c-3e7343756970",
+      "id": "b881dc29-5f76-4bbd-be26-59b666e67c2e",
       "name": "Parse Input"
     },
     {
@@ -41,7 +41,7 @@
         208,
         0
       ],
-      "id": "78661de6-eaa2-45d1-a803-5f66aa692a96",
+      "id": "aaf0af7d-8175-4edc-a78e-22e7a26824c7",
       "name": "Check Score"
     },
     {
@@ -76,7 +76,7 @@
         208,
         224
       ],
-      "id": "b851a371-35a4-49fa-aa47-9bfdd8e71d05",
+      "id": "f3a2b276-9242-4338-9410-5a19bc6e6bd0",
       "name": "Score Gate"
     },
     {
@@ -89,7 +89,7 @@
         -176,
         224
       ],
-      "id": "987b85aa-74be-4b37-ae61-3c9e385afb31",
+      "id": "6c37c2da-9d48-4f11-a952-9b4f6ca68ae6",
       "name": "Prepare Prompt"
     },
     {
@@ -102,12 +102,12 @@
         0,
         0
       ],
-      "id": "50506e4e-6c35-4bfa-9b3c-ff801abfebf7",
+      "id": "0cf49883-2d11-4863-8560-62151bad1cfc",
       "name": "Score ATS1"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst apiKey = 'your_api_key_here'; // your real key\n\nconst bodyObj = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    { role: 'system', content: data.systemMessage },\n    { role: 'user', content: data.userMessage }\n  ],\n  temperature: 0.6,\n  top_p: 0.95,\n  max_tokens: 4096\n};\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json',\n    'Accept': 'application/json'\n  },\n  body: JSON.stringify(bodyObj),\n  returnFullResponse: false,\n  ignoreHttpStatusErrors: false\n});\n\nconst parsed = typeof response === 'string' ? JSON.parse(response) : response;\nconst choice = parsed.choices[0];\n\nlet rawContent = choice.message.content \n  || choice.message.reasoning_content \n  || choice.message.reasoning \n  || '';\n\nif (!rawContent) {\n  throw new Error('Empty response from model. Full response: ' + JSON.stringify(parsed));\n}\n\nconst cleaned = rawContent\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .trim();\n\nconst jsonStart = cleaned.indexOf('{');\nconst jsonEnd = cleaned.lastIndexOf('}');\n\nif (jsonStart === -1 || jsonEnd === -1) {\n  throw new Error('No JSON found in response: ' + cleaned.substring(0, 300));\n}\n\nconst jsonString = cleaned.substring(jsonStart, jsonEnd + 1);\n\nlet resumeData;\ntry {\n  resumeData = JSON.parse(jsonString);\n} catch(e) {\n  throw new Error('JSON parse failed: ' + jsonString.substring(0, 300));\n}\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    resume_data: resumeData,\n    iteration: data.iteration || 0,\n    best_resume_data: data.best_resume_data || null,\n    best_score: data.best_score === undefined ? -1 : data.best_score,\n    ats_score: 0\n  }\n}];"
+        "jsCode": "const data = $input.first().json;\n\nconst apiKey = 'your_api_key_here'; // your real key\n\nconst bodyObj = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    { role: 'system', content: data.systemMessage },\n    { role: 'user', content: data.userMessage }\n  ],\n  temperature: 0.6,\n  top_p: 0.95,\n  max_tokens: 16384\n};\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json',\n    'Accept': 'application/json'\n  },\n  body: JSON.stringify(bodyObj),\n  returnFullResponse: false,\n  ignoreHttpStatusErrors: false\n});\n\nconst parsed = typeof response === 'string' ? JSON.parse(response) : response;\nconst choice = parsed.choices[0];\n\nlet rawContent = choice.message.content \n  || choice.message.reasoning_content \n  || choice.message.reasoning \n  || '';\n\nif (!rawContent) {\n  throw new Error('Empty response from model. Full response: ' + JSON.stringify(parsed));\n}\n\nconst cleaned = rawContent\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .trim();\n\nconst jsonStart = cleaned.indexOf('{');\nconst jsonEnd = cleaned.lastIndexOf('}');\n\nif (jsonStart === -1 || jsonEnd === -1) {\n  throw new Error('No JSON found in response: ' + cleaned.substring(0, 300));\n}\n\nconst jsonString = cleaned.substring(jsonStart, jsonEnd + 1);\n\nlet resumeData;\ntry {\n  resumeData = JSON.parse(jsonString);\n} catch(e) {\n  throw new Error('JSON parse failed: ' + jsonString.substring(0, 300));\n}\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    resume_data: resumeData,\n    iteration: data.iteration || 0,\n    best_resume_data: data.best_resume_data || null,\n    best_score: data.best_score === undefined ? -1 : data.best_score,\n    ats_score: 0\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -115,7 +115,7 @@
         16,
         224
       ],
-      "id": "38dd424c-e930-4366-9f5c-46554aa35538",
+      "id": "350fe725-bd25-4dc7-824d-82877e22ad8f",
       "name": "Generate Resume"
     },
     {
@@ -132,12 +132,12 @@
         848,
         224
       ],
-      "id": "bf2c1053-1e78-43cb-8c17-b33959470c8c",
+      "id": "ff9161d6-5a1d-40b6-98b6-fe518a4a8f82",
       "name": "Respond to Webhook"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"your_service_role_key_here\";\n\n// Resolve user_id robustly: current item first, then fall back to the webhook input\nlet userId = data.user_id;\nif (!userId) {\n  try { userId = $('Webhook').first().json.body.user_id; } catch (e) {}\n}\nif (!userId) {\n  try { userId = $('Parse Input').first().json.user_id; } catch (e) {}\n}\nif (!userId) {\n  throw new Error('Could not resolve user_id from item, Webhook, or Parse Input');\n}\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: supabaseUrl + '/rest/v1/resumes',\n  headers: {\n    'apikey': serviceRoleKey,\n    'Authorization': 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n  },\n  body: JSON.stringify({\n    user_id: userId,\n    type: 'base',\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0,\n    latex_code: data.latex_code || null\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true\n});\n\nconst parsed = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;\n\nif (response.statusCode !== 201) {\n  throw new Error('Supabase error ' + response.statusCode + ': ' + JSON.stringify(parsed));\n}\n\nreturn [{\n  json: {\n    success: true,\n    user_id: userId,\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0\n  }\n}];\n"
+        "jsCode": "const data = $input.first().json;\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"your_servicerole_key_here\";\n\n// Resolve user_id robustly: current item first, then fall back to the webhook input\nlet userId = data.user_id;\nif (!userId) {\n  try { userId = $('Webhook').first().json.body.user_id; } catch (e) {}\n}\nif (!userId) {\n  try { userId = $('Parse Input').first().json.user_id; } catch (e) {}\n}\nif (!userId) {\n  throw new Error('Could not resolve user_id from item, Webhook, or Parse Input');\n}\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: supabaseUrl + '/rest/v1/resumes',\n  headers: {\n    'apikey': serviceRoleKey,\n    'Authorization': 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n  },\n  body: JSON.stringify({\n    user_id: userId,\n    type: 'base',\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0,\n    latex_code: data.latex_code || null\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true\n});\n\nconst parsed = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;\n\nif (response.statusCode !== 201) {\n  throw new Error('Supabase error ' + response.statusCode + ': ' + JSON.stringify(parsed));\n}\n\nreturn [{\n  json: {\n    success: true,\n    user_id: userId,\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -145,12 +145,12 @@
         608,
         224
       ],
-      "id": "9fdb7296-2eaa-4e06-b714-fffe23de29c7",
+      "id": "48ec05da-446e-4557-82fe-9cbd1f990943",
       "name": "Save to Supabase"
     },
     {
       "parameters": {
-        "jsCode": "const bucketName = \"resume-builder-pdfs-t2311\";\nconst region = \"ap-southeast-2\";\n\nconst data = $input.first().json;\n\nconst userId = data.user_id;\nconst filename = data.filename;\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0,\n    filename: filename,\n    latex_code: data.latex_code || null\n  }\n}];"
+        "jsCode": "const bucketName = \"resume-builder-pdfs-t2311\";\nconst region = \"ap-southeast-2\";\n\nconst data = $input.first().json;\n\n// AWS S3 node replaces json output with its own response, losing user_id/filename.\n// Fall back to Generate LaTeX PDF node which has the original values.\nlet userId = data.user_id;\nlet filename = data.filename;\nlet latexCode = data.latex_code || null;\nlet atsScore = data.ats_score || 0;\nlet matchScore = data.match_score || 0;\n\nif (!userId || !filename) {\n  try {\n    const latexData = $('Generate LaTeX PDF').first().json;\n    userId = userId || latexData.user_id;\n    filename = filename || latexData.filename;\n    latexCode = latexCode || latexData.latex_code || null;\n    atsScore = atsScore || latexData.ats_score || 0;\n    matchScore = matchScore || latexData.match_score || 0;\n  } catch(e) {}\n}\n\nif (!userId) throw new Error('Could not resolve user_id for S3 URL');\nif (!filename) throw new Error('Could not resolve filename for S3 URL');\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: atsScore,\n    match_score: matchScore,\n    latex_code: latexCode,\n    filename: filename\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -158,7 +158,7 @@
         608,
         0
       ],
-      "id": "b5df10f4-4b3a-4453-84f3-910b7110baaa",
+      "id": "5f0a333d-b653-41ef-b78e-71113d57ced6",
       "name": "Build S3 URL"
     },
     {
@@ -174,7 +174,7 @@
         416,
         0
       ],
-      "id": "b64035c0-c696-45e8-85a9-1ba7f6882b8c",
+      "id": "90b5504b-545a-4c6e-aea1-adab2e870e9d",
       "name": "Upload a file",
       "credentials": {
         "aws": {
@@ -185,7 +185,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\n// Use the best resume produced across all iterations\nconst r = (data.best_score !== undefined && data.best_score >= data.ats_score && data.best_resume_data) ? data.best_resume_data : data.resume_data;\nconst finalScore = Math.max(data.ats_score || 0, data.best_score || 0);\nconst profile = data.profile || {};\n\nfunction esc(str) {\n  if (!str) return '';\n  return String(str)\n    .replace(/\\\\/g, '\\\\textbackslash{}')\n    .replace(/&/g, '\\\\&')\n    .replace(/%/g, '\\\\%')\n    .replace(/\\$/g, '\\\\$')\n    .replace(/#/g, '\\\\#')\n    .replace(/_/g, '\\\\_')\n    .replace(/\\{/g, '\\\\{')\n    .replace(/\\}/g, '\\\\}')\n    .replace(/~/g, '\\\\textasciitilde{}')\n    .replace(/\\^/g, '\\\\textasciicircum{}');\n}\n\nconst allSkills = r.skills || [];\nconst cloudSkills = allSkills.filter(s => ['aws','ec2','s3','iam','gcp','azure','terraform','cloud'].some(k => s.toLowerCase().includes(k)));\nconst containerSkills = allSkills.filter(s => ['docker','kubernetes','k8s','helm','argocd','container'].some(k => s.toLowerCase().includes(k)));\nconst cicdSkills = allSkills.filter(s => ['ci','cd','jenkins','github actions','gitlab','bash','shell','linux','git'].some(k => s.toLowerCase().includes(k)));\nconst monitorSkills = allSkills.filter(s => ['prometheus','grafana','monitor','elk','datadog','observ'].some(k => s.toLowerCase().includes(k)));\nconst otherSkills = allSkills.filter(s => ![...cloudSkills,...containerSkills,...cicdSkills,...monitorSkills].includes(s));\n\nconst experienceLatex = (r.experience || []).map(exp => `\n\\\\resumeheading{${esc(exp.company)}}{${esc(profile.location || '')}}{${esc(exp.role)}}{${esc(exp.dates)}}\n\\\\begin{resumeitem}\n${(exp.bullets || []).map(b => `  \\\\item ${esc(b)}`).join('\\n')}\n\\\\end{resumeitem}\n\\\\vspace{2pt}\n`).join('\\n');\n\nconst educationLatex = (r.education || []).map(edu => `\n\\\\resumeheading{${esc(edu.institution)}}{${esc(profile.location || '')}}{${esc(edu.degree)} in ${esc(edu.field)}}{${esc(edu.year)}}\n\\\\begin{flushleft}\n\\\\vspace{-6pt}\n${edu.grade ? `CGPA: ${esc(edu.grade)} \\\\\\\\` : ''}\n\\\\end{flushleft}\n`).join('\\n');\n\nconst projectsLatex = (r.projects || []).map(p => {\n  const bullets = (p.description || '').split('.').filter(s => s.trim().length > 10).map(s => `  \\\\item ${esc(s.trim())}.`).join('\\n');\n  return `\n\\\\noindent\\\\textbf{${esc(p.name)}} \\\\hfill ${p.github ? `\\\\href{${esc(p.github)}}{\\\\textbf{[GitHub]}}` : ''}\\\\\\\\\n\\\\noindent\\\\textit{Tech Stack: ${esc(p.tech)}} \\\\hfill \\\\\\\\\n\\\\vspace{-4pt}\n\\\\begin{resumeitem}\n${bullets}\n\\\\end{resumeitem}\n\\\\vspace{4pt}\n`;\n}).join('\\n');\n\nconst achievements = Array.isArray(r.achievements) ? r.achievements : [];\nconst achievementsLatex = achievements.length ? `\\\\section{Achievements}\n\\\\begin{resumeitem}\n${achievements.map(a => `  \\\\item \\\\textbf{${esc(a.title)}}${a.year ? ` (${esc(a.year)})` : ''}${a.description ? ` — ${esc(a.description)}` : ''}`).join('\\n')}\n\\\\end{resumeitem}` : '';\n\nconst certifications = Array.isArray(r.certifications) ? r.certifications : [];\nconst certificationsLatex = certifications.length ? `\\\\section{Certifications}\n\\\\begin{resumeitem}\n${certifications.map(c => `  \\\\item \\\\textbf{${esc(c.name)}}${c.issuer ? `, ${esc(c.issuer)}` : ''}${c.year ? ` (${esc(c.year)})` : ''}${c.credential_url ? ` \\\\href{${esc(c.credential_url)}}{[Verify]}` : ''}`).join('\\n')}\n\\\\end{resumeitem}` : '';\n\nconst latex = `\\\\documentclass[9pt,letterpaper]{article}\n\\\\usepackage[utf8]{inputenc}\n\\\\usepackage[margin=0.4in]{geometry}\n\\\\usepackage{titlesec}\n\\\\usepackage{enumitem}\n\\\\usepackage{hyperref}\n\\\\usepackage{nopageno}\n\\\\usepackage{xcolor}\n\\\\usepackage{fontawesome5}\n\n\\\\definecolor{linkblue}{RGB}{20, 70, 160}\n\\\\hypersetup{colorlinks=true,linkcolor=linkblue,urlcolor=linkblue}\n\n\\\\pagestyle{empty}\n\n\\\\titleformat{\\\\section}{\\\\large\\\\bfseries\\\\scshape}{}{0em}{}[\\\\titlerule]\n\\\\titlespacing{\\\\section}{0pt}{6pt}{3pt}\n\n\\\\newlist{resumeitem}{itemize}{1}\n\\\\setlist[resumeitem]{label=$\\\\bullet$, leftmargin=12pt, topsep=1pt, itemsep=1pt, parsep=0pt}\n\n\\\\newcommand{\\\\resumeheading}[4]{\n    \\\\noindent\\\\textbf{#1} \\\\hfill #2\\\\\\\\\n    \\\\noindent\\\\textit{#3} \\\\hfill \\\\textit{#4}\\\\vspace{1pt}\n}\n\n\\\\begin{document}\n\n\\\\begin{center}\n    {\\\\Huge \\\\textbf{\\\\textsc{${esc(r.full_name || profile.full_name || 'Name')}}}}\\\\\\\\\n    \\\\vspace{3pt}\n    ${esc(profile.location || '')} \\\\textbullet{} ${esc(profile.phone || '')} \\\\textbullet{} \\\\href{mailto:${esc(profile.email || '')}}{${esc(profile.email || '')}} \\\\\\\\\n    \\\\vspace{4pt}\n    ${profile.linkedin ? `\\\\href{https://${esc(profile.linkedin)}}{\\\\faLinkedin{} \\\\textbf{LinkedIn}} \\\\textbullet{}` : ''}\n    ${profile.github ? `\\\\href{https://${esc(profile.github)}}{\\\\faGithub{} \\\\textbf{GitHub}}` : ''}\n\\\\end{center}\n\n${r.summary ? `\\\\section{Summary}\n${esc(r.summary)}` : ''}\n\n\\\\section{Education}\n${educationLatex}\n\n\\\\section{Technical Skills}\n\\\\noindent \\\\textbf{Cloud \\\\& Infrastructure:} ${esc(cloudSkills.join(', '))} \\\\\\\\\n\\\\textbf{Containerization \\\\& Orchestration:} ${esc(containerSkills.join(', '))} \\\\\\\\\n\\\\textbf{CI/CD \\\\& Automation:} ${esc(cicdSkills.join(', '))} \\\\\\\\\n\\\\textbf{Monitoring \\\\& Observability:} ${esc(monitorSkills.join(', '))} \\\\\\\\\n${otherSkills.length > 0 ? `\\\\textbf{Other:} ${esc(otherSkills.join(', '))} \\\\\\\\` : ''}\n\n\\\\section{Work Experience}\n${experienceLatex}\n\n\\\\section{Projects}\n${projectsLatex}\n\n${achievementsLatex}\n\n${certificationsLatex}\n\n\\\\end{document}`;\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://latex.ytotech.com/builds/sync',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    compiler: 'pdflatex',\n    resources: [\n      {\n        main: true,\n        content: latex\n      }\n    ]\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true,\n  encoding: 'arraybuffer'\n});\n\nif (response.statusCode !== 200 && response.statusCode !== 201) {\n  let errMsg = '';\n  try {\n    errMsg = Buffer.from(response.body).toString('utf8').substring(0, 500);\n  } catch(e) {}\n  throw new Error('LaTeX compilation failed: ' + response.statusCode + ' — ' + errMsg);\n}\n\nconst filename = `resume_${data.user_id}_${Date.now()}.pdf`;\n\nconst binaryData = await this.helpers.prepareBinaryData(\n  Buffer.from(response.body),\n  filename,\n  'application/pdf'\n);\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    ats_score: finalScore,\n    match_score: data.match_score || 0,\n    filename: filename,\n    latex_code: latex\n  },\n  binary: {\n    data: binaryData\n  }\n}];"
+        "jsCode": "const data = $input.first().json;\n\n// Use the best resume produced across all iterations\nconst r = (data.best_score !== undefined && data.best_score >= data.ats_score && data.best_resume_data) ? data.best_resume_data : data.resume_data;\nconst finalScore = Math.max(data.ats_score || 0, data.best_score || 0);\nconst profile = data.profile || {};\n\nfunction esc(str) {\n  if (!str) return '';\n  return String(str)\n    .replace(/\\\\/g, '\\\\textbackslash{}')\n    .replace(/&/g, '\\\\&')\n    .replace(/%/g, '\\\\%')\n    .replace(/\\$/g, '\\\\$')\n    .replace(/#/g, '\\\\#')\n    .replace(/_/g, '\\\\_')\n    .replace(/\\{/g, '\\\\{')\n    .replace(/\\}/g, '\\\\}')\n    .replace(/~/g, '\\\\textasciitilde{}')\n    .replace(/\\^/g, '\\\\textasciicircum{}');\n}\n\nconst allSkills = r.skills || [];\nconst cloudSkills = allSkills.filter(s => ['aws','ec2','s3','iam','gcp','azure','terraform','cloud'].some(k => s.toLowerCase().includes(k)));\nconst containerSkills = allSkills.filter(s => ['docker','kubernetes','k8s','helm','argocd','container'].some(k => s.toLowerCase().includes(k)));\nconst cicdSkills = allSkills.filter(s => ['ci','cd','jenkins','github actions','gitlab','bash','shell','linux','git'].some(k => s.toLowerCase().includes(k)));\nconst monitorSkills = allSkills.filter(s => ['prometheus','grafana','monitor','elk','datadog','observ'].some(k => s.toLowerCase().includes(k)));\nconst otherSkills = allSkills.filter(s => ![...cloudSkills,...containerSkills,...cicdSkills,...monitorSkills].includes(s));\n\nconst experienceLatex = (r.experience || []).map(exp => `\n\\\\resumeheading{${esc(exp.company)}}{${esc(profile.location || '')}}{${esc(exp.role)}}{${esc(exp.dates)}}\n\\\\begin{resumeitem}\n${(exp.bullets || []).map(b => `  \\\\item ${esc(b)}`).join('\\n')}\n\\\\end{resumeitem}\n\\\\vspace{2pt}\n`).join('\\n');\n\nconst educationLatex = (r.education || []).map(edu => `\n\\\\resumeheading{${esc(edu.institution)}}{${esc(profile.location || '')}}{${esc(edu.degree)} in ${esc(edu.field)}}{${esc(edu.year)}}\n\\\\begin{flushleft}\n\\\\vspace{-6pt}\n${edu.grade ? `CGPA: ${esc(edu.grade)} \\\\\\\\` : ''}\n\\\\end{flushleft}\n`).join('\\n');\n\nconst projectsLatex = (r.projects || []).map(p => {\n  const bullets = (p.description || '').split('.').filter(s => s.trim().length > 10).map(s => `  \\\\item ${esc(s.trim())}.`).join('\\n');\n  return `\n\\\\noindent\\\\textbf{${esc(p.name)}} \\\\hfill ${p.github ? `\\\\href{${esc(p.github)}}{\\\\textbf{[GitHub]}}` : ''}\\\\\\\\\n\\\\noindent\\\\textit{Tech Stack: ${esc(p.tech)}} \\\\hfill \\\\\\\\\n\\\\vspace{-4pt}\n\\\\begin{resumeitem}\n${bullets}\n\\\\end{resumeitem}\n\\\\vspace{4pt}\n`;\n}).join('\\n');\n\nconst achievements = Array.isArray(r.achievements) ? r.achievements : [];\nconst achievementsLatex = achievements.length ? `\\\\section{Achievements}\n\\\\begin{resumeitem}\n${achievements.map(a => `  \\\\item \\\\textbf{${esc(a.title)}}${a.year ? ` (${esc(a.year)})` : ''}${a.description ? ` — ${esc(a.description)}` : ''}`).join('\\n')}\n\\\\end{resumeitem}` : '';\n\nconst certifications = Array.isArray(r.certifications) ? r.certifications : [];\nconst certificationsLatex = certifications.length ? `\\\\section{Certifications}\n\\\\begin{resumeitem}\n${certifications.map(c => `  \\\\item \\\\textbf{${esc(c.name)}}${c.issuer ? `, ${esc(c.issuer)}` : ''}${c.year ? ` (${esc(c.year)})` : ''}${c.credential_url ? ` \\\\href{${esc(c.credential_url)}}{[Verify]}` : ''}`).join('\\n')}\n\\\\end{resumeitem}` : '';\n\nconst latex = `\\\\documentclass[9pt,letterpaper]{article}\n\\\\usepackage[utf8]{inputenc}\n\\\\usepackage[margin=0.4in]{geometry}\n\\\\usepackage{titlesec}\n\\\\usepackage{enumitem}\n\\\\usepackage{hyperref}\n\\\\usepackage{nopageno}\n\\\\usepackage{xcolor}\n\\\n\\\\definecolor{linkblue}{RGB}{20, 70, 160}\n\\\\hypersetup{colorlinks=true,linkcolor=linkblue,urlcolor=linkblue}\n\n\\\\pagestyle{empty}\n\n\\\\titleformat{\\\\section}{\\\\large\\\\bfseries\\\\scshape}{}{0em}{}[\\\\titlerule]\n\\\\titlespacing{\\\\section}{0pt}{6pt}{3pt}\n\n\\\\newlist{resumeitem}{itemize}{1}\n\\\\setlist[resumeitem]{label=$\\\\bullet$, leftmargin=12pt, topsep=1pt, itemsep=1pt, parsep=0pt}\n\n\\\\newcommand{\\\\resumeheading}[4]{\n    \\\\noindent\\\\textbf{#1} \\\\hfill #2\\\\\\\\\n    \\\\noindent\\\\textit{#3} \\\\hfill \\\\textit{#4}\\\\vspace{1pt}\n}\n\n\\\\begin{document}\n\n\\\\begin{center}\n    {\\\\Huge \\\\textbf{\\\\textsc{${esc(r.full_name || profile.full_name || 'Name')}}}}\\\\\\\\\n    \\\\vspace{3pt}\n    ${esc(profile.location || '')} \\\\textbullet{} ${esc(profile.phone || '')} \\\\textbullet{} \\\\href{mailto:${esc(profile.email || '')}}{${esc(profile.email || '')}} \\\\\\\\\n    \\\\vspace{4pt}\n    ${profile.linkedin ? `\\\\href{https://${esc(profile.linkedin)}}{\\\\faLinkedin{} \\\\textbf{LinkedIn}} \\\\textbullet{}` : ''}\n    ${profile.github ? `\\\\href{https://${esc(profile.github)}}{\\\\faGithub{} \\\\textbf{GitHub}}` : ''}\n\\\\end{center}\n\n${r.summary ? `\\\\section{Summary}\n${esc(r.summary)}` : ''}\n\n\\\\section{Education}\n${educationLatex}\n\n\\\\section{Technical Skills}\n\\\\noindent \\\\textbf{Cloud \\\\& Infrastructure:} ${esc(cloudSkills.join(', '))} \\\\\\\\\n\\\\textbf{Containerization \\\\& Orchestration:} ${esc(containerSkills.join(', '))} \\\\\\\\\n\\\\textbf{CI/CD \\\\& Automation:} ${esc(cicdSkills.join(', '))} \\\\\\\\\n\\\\textbf{Monitoring \\\\& Observability:} ${esc(monitorSkills.join(', '))} \\\\\\\\\n${otherSkills.length > 0 ? `\\\\textbf{Other:} ${esc(otherSkills.join(', '))} \\\\\\\\` : ''}\n\n\\\\section{Work Experience}\n${experienceLatex}\n\n\\\\section{Projects}\n${projectsLatex}\n\n${achievementsLatex}\n\n${certificationsLatex}\n\n\\\\end{document}`;\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://latex.ytotech.com/builds/sync',\n  headers: {\n    'Content-Type': 'application/json'\n  },\n  body: JSON.stringify({\n    compiler: 'pdflatex',\n    resources: [\n      {\n        main: true,\n        content: latex\n      }\n    ]\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true,\n  encoding: 'arraybuffer'\n});\n\nif (response.statusCode !== 200 && response.statusCode !== 201) {\n  let errMsg = '';\n  try {\n    errMsg = Buffer.from(response.body).toString('utf8').substring(0, 500);\n  } catch(e) {}\n  throw new Error('LaTeX compilation failed: ' + response.statusCode + ' — ' + errMsg);\n}\n\nconst filename = `resume_${data.user_id}_${Date.now()}.pdf`;\n\nconst binaryData = await this.helpers.prepareBinaryData(\n  Buffer.from(response.body),\n  filename,\n  'application/pdf'\n);\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    ats_score: finalScore,\n    match_score: data.match_score || 0,\n    filename: filename,\n    latex_code: latex\n  },\n  binary: {\n    data: binaryData\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -193,7 +193,7 @@
         416,
         224
       ],
-      "id": "965b42e2-5558-48d0-8f24-507f9ebcca6c",
+      "id": "43223f4f-ea64-4333-9322-4e7a883c50a0",
       "name": "Generate LaTeX PDF"
     }
   ],
@@ -333,7 +333,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "45c8044f-6992-4e6e-9735-ea19bad3baef",
+  "versionId": "bdd24ce4-0f66-4906-858c-b920018bbada",
   "meta": {
     "instanceId": "c929c734d6eed994ee8b5332e41aedafb118d597f4e027e68c16c5a044273a20"
   },

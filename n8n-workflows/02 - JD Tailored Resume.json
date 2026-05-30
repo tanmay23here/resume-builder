@@ -11,24 +11,24 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -256,
-        144
+        496,
+        -224
       ],
-      "id": "4d968cf1-a0db-4f9c-911d-0bd7b4c47f04",
+      "id": "00e96e82-e342-4423-9d70-f661c19329a8",
       "name": "Webhook",
       "webhookId": "91ed5980-2a1d-48fa-a878-3838d411bb89"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\nconst apiKey = \"your_api_key_here\";\n\nif (!data.userMessage || data.userMessage.length < 100) {\n  throw new Error('userMessage is empty or too short: ' + (data.userMessage || 'EMPTY'));\n}\n\nconst bodyObj = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    { role: 'system', content: data.systemMessage },\n    { role: 'user', content: data.userMessage }\n  ],\n  temperature: 0.6,\n  top_p: 0.95,\n  max_tokens: 4096\n};\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json',\n    'Accept': 'application/json'\n  },\n  body: JSON.stringify(bodyObj),\n  returnFullResponse: false,\n  ignoreHttpStatusErrors: false\n});\n\nconst parsed = typeof response === 'string' ? JSON.parse(response) : response;\nconst choice = parsed.choices[0];\n\nlet rawContent = choice.message.content\n  || choice.message.reasoning_content\n  || choice.message.reasoning\n  || '';\n\nif (!rawContent || rawContent.length < 10) {\n  throw new Error('Empty response from model. Full API response: ' + JSON.stringify(parsed).substring(0, 500));\n}\n\nconst cleaned = rawContent\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .trim();\n\nconst jsonStart = cleaned.indexOf('{');\nconst jsonEnd = cleaned.lastIndexOf('}');\n\nif (jsonStart === -1 || jsonEnd === -1) {\n  throw new Error('No JSON found in response: ' + cleaned.substring(0, 300));\n}\n\nlet resumeData;\ntry {\n  resumeData = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));\n} catch(e) {\n  throw new Error('JSON parse failed: ' + cleaned.substring(jsonStart, jsonStart + 300));\n}\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    jd_keywords: data.jd_keywords || [],\n    match_score: data.match_score,\n    matched_keywords: data.matched_keywords,\n    missing_keywords: data.missing_keywords,\n    resume_data: resumeData,\n    iteration: data.iteration || 0,\n    best_resume_data: data.best_resume_data || null,\n    best_score: data.best_score === undefined ? -1 : data.best_score,\n    ats_score: 0\n  }\n}];"
+        "jsCode": "const data = $input.first().json;\nconst apiKey = \"your_api_key_here\";\n\nif (!data.userMessage || data.userMessage.length < 100) {\n  throw new Error('userMessage is empty or too short: ' + (data.userMessage || 'EMPTY'));\n}\n\nconst bodyObj = {\n  model: 'nvidia/llama-3.3-nemotron-super-49b-v1.5',\n  messages: [\n    { role: 'system', content: data.systemMessage },\n    { role: 'user', content: data.userMessage }\n  ],\n  temperature: 0.6,\n  top_p: 0.95,\n  max_tokens: 16384\n};\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: 'https://integrate.api.nvidia.com/v1/chat/completions',\n  headers: {\n    'Authorization': 'Bearer ' + apiKey,\n    'Content-Type': 'application/json',\n    'Accept': 'application/json'\n  },\n  body: JSON.stringify(bodyObj),\n  returnFullResponse: false,\n  ignoreHttpStatusErrors: false\n});\n\nconst parsed = typeof response === 'string' ? JSON.parse(response) : response;\nconst choice = parsed.choices[0];\n\nlet rawContent = choice.message.content\n  || choice.message.reasoning_content\n  || choice.message.reasoning\n  || '';\n\nif (!rawContent || rawContent.length < 10) {\n  throw new Error('Empty response from model. Full API response: ' + JSON.stringify(parsed).substring(0, 500));\n}\n\nconst cleaned = rawContent\n  .replace(/```json\\n?/gi, '')\n  .replace(/```\\n?/gi, '')\n  .trim();\n\nconst jsonStart = cleaned.indexOf('{');\nconst jsonEnd = cleaned.lastIndexOf('}');\n\nif (jsonStart === -1 || jsonEnd === -1) {\n  throw new Error('No JSON found in response: ' + cleaned.substring(0, 300));\n}\n\nlet resumeData;\ntry {\n  resumeData = JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));\n} catch(e) {\n  throw new Error('JSON parse failed: ' + cleaned.substring(jsonStart, jsonStart + 300));\n}\n\nreturn [{\n  json: {\n    user_id: data.user_id,\n    profile: data.profile,\n    jd_keywords: data.jd_keywords || [],\n    match_score: data.match_score,\n    matched_keywords: data.matched_keywords,\n    missing_keywords: data.missing_keywords,\n    resume_data: resumeData,\n    iteration: data.iteration || 0,\n    best_resume_data: data.best_resume_data || null,\n    best_score: data.best_score === undefined ? -1 : data.best_score,\n    ats_score: 0\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        128,
-        144
+        880,
+        -224
       ],
-      "id": "f314a615-6b29-41a9-a91f-c225f5b35cfe",
+      "id": "825852b9-4e23-497e-aa3b-f1768d2df28b",
       "name": "Build Tailored Resume"
     },
     {
@@ -41,10 +41,10 @@
       "type": "n8n-nodes-base.awsS3",
       "typeVersion": 2,
       "position": [
-        736,
-        144
+        1488,
+        -224
       ],
-      "id": "b7773049-1258-4ffb-b471-9de0bfaaf4be",
+      "id": "3cf87432-94c0-4d62-a94a-7cc070bdb9c8",
       "name": "Upload a file",
       "credentials": {
         "aws": {
@@ -60,10 +60,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        336,
-        144
+        1088,
+        -224
       ],
-      "id": "d68406ff-6f71-49ba-a9be-6f83ea0d35bd",
+      "id": "78cf9311-78ea-45af-85af-4ae8b43379c5",
       "name": "Score ATS"
     },
     {
@@ -73,10 +73,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        368,
-        -48
+        1120,
+        -416
       ],
-      "id": "69bdc087-9556-4b93-805b-2e50a1c06efe",
+      "id": "2042e197-7f54-475b-bdaa-c04327d88254",
       "name": "Check Score"
     },
     {
@@ -108,36 +108,36 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        560,
-        -48
+        1312,
+        -416
       ],
-      "id": "8971d8ac-41d8-4d1d-a35a-543b610fe540",
+      "id": "4bae531a-8c9b-461d-9cf1-f4764bfa0639",
       "name": "Score Gate"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst userId = data.user_id;\nconst filename = data.filename;\n\nconst bucketName = \"resume-builder-pdfs-t2311\";\nconst region = \"ap-southeast-2\";\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0,\n    filename: filename,\n    latex_code: data.latex_code || null\n  }\n}];"
+        "jsCode": "const bucketName = \"resume-builder-pdfs-t2311\";\nconst region = \"ap-southeast-2\";\n\nconst data = $input.first().json;\n\n// AWS S3 node replaces json output with its own response, losing user_id/filename.\n// Fall back to Generate LaTeX PDF node which has the original values.\nlet userId = data.user_id;\nlet filename = data.filename;\nlet latexCode = data.latex_code || null;\nlet atsScore = data.ats_score || 0;\nlet matchScore = data.match_score || 0;\n\nif (!userId || !filename) {\n  try {\n    const latexData = $('Generate LaTeX PDF').first().json;\n    userId = userId || latexData.user_id;\n    filename = filename || latexData.filename;\n    latexCode = latexCode || latexData.latex_code || null;\n    atsScore = atsScore || latexData.ats_score || 0;\n    matchScore = matchScore || latexData.match_score || 0;\n  } catch(e) {}\n}\n\nif (!userId) throw new Error('Could not resolve user_id for S3 URL');\nif (!filename) throw new Error('Could not resolve filename for S3 URL');\n\nconst s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/resumes/${userId}/${filename}`;\n\nreturn [{\n  json: {\n    user_id: userId,\n    s3_url: s3Url,\n    ats_score: atsScore,\n    match_score: matchScore,\n    latex_code: latexCode,\n    filename: filename\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        944,
-        144
+        1696,
+        -224
       ],
-      "id": "0805196f-3a84-42a9-b8d6-98c5f6f0cc3a",
+      "id": "1716a4eb-7e62-41e0-9d57-408b25459923",
       "name": "Build S3 URL"
     },
     {
       "parameters": {
-        "jsCode": "const data = $input.first().json;\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"your_service_role_key_here\";\n\n// Resolve user_id robustly: current item first, then fall back to the webhook input\nlet userId = data.user_id;\nif (!userId) {\n  try { userId = $('Webhook').first().json.body.user_id; } catch (e) {}\n}\nif (!userId) {\n  try { userId = $('Parse and Fetch').first().json.user_id; } catch (e) {}\n}\nif (!userId) {\n  throw new Error('Could not resolve user_id from item, Webhook, or Parse and Fetch');\n}\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: supabaseUrl + '/rest/v1/resumes',\n  headers: {\n    'apikey': serviceRoleKey,\n    'Authorization': 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n  },\n  body: JSON.stringify({\n    user_id: userId,\n    type: 'jd_tailored',\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0,\n    latex_code: data.latex_code || null\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true\n});\n\nconst parsed = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;\n\nif (response.statusCode !== 201) {\n  throw new Error('Supabase error ' + response.statusCode + ': ' + JSON.stringify(parsed));\n}\n\nreturn [{\n  json: {\n    success: true,\n    user_id: userId,\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0\n  }\n}];\n"
+        "jsCode": "const data = $input.first().json;\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"your_servicerole_key_here\";\n\n// Resolve user_id robustly: current item first, then fall back to the webhook input\nlet userId = data.user_id;\nif (!userId) {\n  try { userId = $('Webhook').first().json.body.user_id; } catch (e) {}\n}\nif (!userId) {\n  try { userId = $('Parse and Fetch').first().json.user_id; } catch (e) {}\n}\nif (!userId) {\n  throw new Error('Could not resolve user_id from item, Webhook, or Parse and Fetch');\n}\n\nconst response = await this.helpers.httpRequest({\n  method: 'POST',\n  url: supabaseUrl + '/rest/v1/resumes',\n  headers: {\n    'apikey': serviceRoleKey,\n    'Authorization': 'Bearer ' + serviceRoleKey,\n    'Content-Type': 'application/json',\n    'Prefer': 'return=representation'\n  },\n  body: JSON.stringify({\n    user_id: userId,\n    type: 'jd_tailored',\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0,\n    latex_code: data.latex_code || null\n  }),\n  returnFullResponse: true,\n  ignoreHttpStatusErrors: true\n});\n\nconst parsed = typeof response.body === 'string' ? JSON.parse(response.body) : response.body;\n\nif (response.statusCode !== 201) {\n  throw new Error('Supabase error ' + response.statusCode + ': ' + JSON.stringify(parsed));\n}\n\nreturn [{\n  json: {\n    success: true,\n    user_id: userId,\n    s3_url: data.s3_url,\n    ats_score: data.ats_score || 0,\n    match_score: data.match_score || 0\n  }\n}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        960,
-        -48
+        1712,
+        -416
       ],
-      "id": "c074263f-2b2e-4b9d-b206-a3301bec62a2",
+      "id": "542f200b-f975-470f-b64c-8dcd6a0b4a91",
       "name": "Save to Supabase"
     },
     {
@@ -151,23 +151,23 @@
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.5,
       "position": [
-        1152,
-        80
+        1904,
+        -288
       ],
-      "id": "a1588025-5f92-4f22-9147-98c6f4c4bacd",
+      "id": "d66e6d49-c795-4d2a-ad06-f7c2375270be",
       "name": "Respond to Webhook"
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body;\n\nif (!body.user_id || !body.jd_text) {\n  throw new Error('Missing user_id or jd_text. Received: ' + JSON.stringify(body));\n}\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"your_service_role_key_here\";\n\nlet profile = {};\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'GET',\n    url: supabaseUrl + '/rest/v1/profiles?user_id=eq.' + body.user_id + '&select=*',\n    headers: {\n      'apikey': serviceRoleKey,\n      'Authorization': 'Bearer ' + serviceRoleKey,\n      'Content-Type': 'application/json'\n    },\n    returnFullResponse: false,\n    ignoreHttpStatusErrors: true\n  });\n  const parsed = typeof response === 'string' ? JSON.parse(response) : response;\n  profile = parsed[0] || {};\n} catch(e) {\n  profile = {};\n}\n\nif (!profile || !profile.skills) {\n  profile = {\n    full_name: \"Test User\",\n    email: \"test@email.com\",\n    phone: \"+91 98765 43210\",\n    location: \"Mumbai, India\",\n    linkedin: \"linkedin.com/in/testuser\",\n    github: \"github.com/testuser\",\n    skills: [\"Docker\", \"Kubernetes\", \"AWS\", \"Terraform\", \"CI/CD\", \"Jenkins\", \"GitHub Actions\", \"Linux\", \"Python\", \"Bash\", \"Prometheus\", \"Grafana\", \"Helm\", \"ArgoCD\"],\n    experience: [{\"company\": \"Tech Corp\", \"role\": \"DevOps Engineer\", \"start_date\": \"2022-01\", \"end_date\": \"2024-01\", \"description\": \"Managed Kubernetes clusters on AWS EKS. Built CI/CD pipelines reducing deployment time by 50%. Automated infrastructure with Terraform.\"}],\n    education: [{\"institution\": \"Mumbai University\", \"degree\": \"B.Tech\", \"field\": \"Computer Science\", \"start_year\": \"2018\", \"end_year\": \"2022\", \"grade\": \"8.5 CGPA\"}],\n    projects: [{\"name\": \"K8s Infra Automation\", \"description\": \"Automated Kubernetes infrastructure deployment using Terraform and ArgoCD\", \"tech_stack\": \"Kubernetes, Terraform, ArgoCD, AWS\"}],\n    achievements: [{\"title\": \"Reduced cloud costs\", \"description\": \"Cut AWS spend by 30% through rightsizing and spot instances\", \"year\": \"2023\"}],\n    certifications: [{\"name\": \"AWS Certified Solutions Architect - Associate\", \"issuer\": \"Amazon Web Services\", \"year\": \"2023\", \"credential_url\": \"\"}]\n  };\n}\n\nreturn [{\n  json: {\n    user_id: body.user_id,\n    jd_text: body.jd_text,\n    profile: profile\n  }\n}];"
+        "jsCode": "const body = $input.first().json.body;\n\nif (!body.user_id || !body.jd_text) {\n  throw new Error('Missing user_id or jd_text. Received: ' + JSON.stringify(body));\n}\n\nconst supabaseUrl = \"https://jxposfnuselsyjejjhte.supabase.co\";\nconst serviceRoleKey = \"your_servicerole_key_here\";\n\nlet profile = {};\ntry {\n  const response = await this.helpers.httpRequest({\n    method: 'GET',\n    url: supabaseUrl + '/rest/v1/profiles?user_id=eq.' + body.user_id + '&select=*',\n    headers: {\n      'apikey': serviceRoleKey,\n      'Authorization': 'Bearer ' + serviceRoleKey,\n      'Content-Type': 'application/json'\n    },\n    returnFullResponse: false,\n    ignoreHttpStatusErrors: true\n  });\n  const parsed = typeof response === 'string' ? JSON.parse(response) : response;\n  profile = parsed[0] || {};\n} catch(e) {\n  profile = {};\n}\n\nif (!profile || !profile.skills) {\n  profile = {\n    full_name: \"Test User\",\n    email: \"test@email.com\",\n    phone: \"+91 98765 43210\",\n    location: \"Mumbai, India\",\n    linkedin: \"linkedin.com/in/testuser\",\n    github: \"github.com/testuser\",\n    skills: [\"Docker\", \"Kubernetes\", \"AWS\", \"Terraform\", \"CI/CD\", \"Jenkins\", \"GitHub Actions\", \"Linux\", \"Python\", \"Bash\", \"Prometheus\", \"Grafana\", \"Helm\", \"ArgoCD\"],\n    experience: [{\"company\": \"Tech Corp\", \"role\": \"DevOps Engineer\", \"start_date\": \"2022-01\", \"end_date\": \"2024-01\", \"description\": \"Managed Kubernetes clusters on AWS EKS. Built CI/CD pipelines reducing deployment time by 50%. Automated infrastructure with Terraform.\"}],\n    education: [{\"institution\": \"Mumbai University\", \"degree\": \"B.Tech\", \"field\": \"Computer Science\", \"start_year\": \"2018\", \"end_year\": \"2022\", \"grade\": \"8.5 CGPA\"}],\n    projects: [{\"name\": \"K8s Infra Automation\", \"description\": \"Automated Kubernetes infrastructure deployment using Terraform and ArgoCD\", \"tech_stack\": \"Kubernetes, Terraform, ArgoCD, AWS\"}],\n    achievements: [{\"title\": \"Reduced cloud costs\", \"description\": \"Cut AWS spend by 30% through rightsizing and spot instances\", \"year\": \"2023\"}],\n    certifications: [{\"name\": \"AWS Certified Solutions Architect - Associate\", \"issuer\": \"Amazon Web Services\", \"year\": \"2023\", \"credential_url\": \"\"}]\n  };\n}\n\nreturn [{\n  json: {\n    user_id: body.user_id,\n    jd_text: body.jd_text,\n    profile: profile\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        -64,
-        144
+        688,
+        -224
       ],
-      "id": "b277e06e-7b93-4405-8147-38c428a1149b",
+      "id": "c6f83650-c3c4-455c-b5fe-bc3846ecae9c",
       "name": "Parse and Fetch"
     },
     {
@@ -177,10 +177,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        128,
-        -48
+        880,
+        -416
       ],
-      "id": "80353971-103f-4eab-ac58-cdd16c3d54d9",
+      "id": "05bc99f7-1b51-4ab9-a576-d2038e5d7ca4",
       "name": "Analyse JD and Build Prompt"
     },
     {
@@ -190,10 +190,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        752,
-        -48
+        1504,
+        -416
       ],
-      "id": "f0c6b359-b7a8-46a8-b033-d06d6c0a65ee",
+      "id": "23ab8084-30ee-441e-bc87-348692f7f717",
       "name": "Prepare Refinement"
     },
     {
@@ -203,10 +203,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        544,
-        144
+        1296,
+        -224
       ],
-      "id": "9f39a557-67eb-46ee-b1b5-c5a892ccd83a",
+      "id": "a029a44b-16bf-4781-be6d-34b92bf72bfb",
       "name": "Generate LaTeX PDF"
     }
   ],
@@ -357,7 +357,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "aa4850f2-94c8-4b2f-b61f-6e268ecabfed",
+  "versionId": "fcd29f0d-bbe9-45ca-a67c-fa5bd06f258f",
   "meta": {
     "instanceId": "c929c734d6eed994ee8b5332e41aedafb118d597f4e027e68c16c5a044273a20"
   },
