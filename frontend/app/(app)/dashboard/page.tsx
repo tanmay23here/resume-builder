@@ -118,7 +118,7 @@ function DashboardContent() {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.email}</span>
+            <span className="nav-email" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{user?.email}</span>
             <Link href="/profile" className="btn-primary" style={{ padding: '7px 16px', fontSize: '0.8rem' }}>
               Edit Profile
             </Link>
@@ -155,7 +155,7 @@ function DashboardContent() {
 
         {/* Action card — Tailor for JD */}
         <div className="card card-hover animate-fade-in" style={{ marginBottom: 28, padding: '24px 28px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div className="action-card-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
                 <div style={{ width: 32, height: 32, borderRadius: 8, background: 'rgba(16,185,129,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -198,7 +198,7 @@ function DashboardContent() {
                 className="card card-hover animate-fade-in"
                 style={{ padding: '20px 24px', animationDelay: `${idx * 0.05}s` }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+                <div className="resume-card-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, flexWrap: 'wrap' }}>
                       <span className={`badge ${resume.type === 'base' ? 'badge-indigo' : 'badge-green'}`}>
@@ -222,7 +222,7 @@ function DashboardContent() {
                       })}
                     </p>
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="resume-card-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     {resume.latex_code && (
                       <button
                         onClick={() => { setCopied(false); setLatexModal(resume.latex_code || '') }}

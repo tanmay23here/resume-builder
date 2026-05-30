@@ -153,6 +153,7 @@ export default function ProfilePage() {
               <div key={s} style={{ display: 'flex', alignItems: 'center', flex: i < STEPS.length - 1 ? 1 : 0 }}>
                 <button
                   onClick={() => setStep(i)}
+                  className="step-btn"
                   style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 >
                   <div className={`step-dot ${i < step ? 'step-dot-done' : i === step ? 'step-dot-active' : 'step-dot-inactive'}`}>
@@ -162,7 +163,7 @@ export default function ProfilePage() {
                       <span style={{ fontSize: '0.65rem' }}>{i + 1}</span>
                     )}
                   </div>
-                  <span style={{ fontSize: '0.65rem', fontWeight: 600, color: i === step ? 'var(--accent-light)' : i < step ? 'var(--green)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
+                  <span className="step-label" style={{ fontSize: '0.65rem', fontWeight: 600, color: i === step ? 'var(--accent-light)' : i < step ? 'var(--green)' : 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                     {s}
                   </span>
                 </button>

@@ -410,3 +410,59 @@ body {
   font-weight: 700;
   color: var(--accent-light);
 }
+
+/* ─── Responsive Adjustments ────────────────────────── */
+@media (max-width: 640px) {
+  /* Global card padding */
+  .card {
+    padding: 16px !important;
+  }
+
+  /* Navbar padding and brand */
+  .navbar > div {
+    padding: 0 16px !important;
+  }
+  .nav-email {
+    display: none !important;
+  }
+
+  /* Profile page step progress dots */
+  .step-label {
+    display: none !important;
+  }
+  .step-btn {
+    gap: 0 !important;
+  }
+  .step-track {
+    margin-bottom: 0 !important;
+  }
+
+  /* Dashboard action card content stacking */
+  .action-card-inner {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+  .action-card-inner a {
+    width: 100% !important;
+    text-align: center !important;
+  }
+
+  /* Dashboard resume item card stacking */
+  .resume-card-inner {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+  .resume-card-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+  }
+  .resume-card-actions > * {
+    flex: 1 !important;
+    text-align: center !important;
+    padding: 10px 12px !important;
+    font-size: 0.825rem !important;
+  }
+}
