@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import { triggerBaseResume } from '@/lib/n8n'
 
-const STEPS = ['Personal', 'Education', 'Experience', 'Skills', 'Projects']
-const STEP_ICONS = ['👤', '🎓', '💼', '⚡', '🚀']
+const STEPS = ['Personal', 'Education', 'Experience', 'Skills', 'Projects', 'Achievements', 'Certifications']
+const STEP_ICONS = ['👤', '🎓', '💼', '⚡', '🚀', '🏆', '📜']
 
 const emptyEdu = () => ({ institution: '', degree: '', field: '', start_year: '', end_year: '', grade: '' })
 const emptyExp = () => ({ company: '', role: '', start_date: '', end_date: '', current: false, description: '' })
 const emptyProj = () => ({ name: '', description: '', tech_stack: '', github_url: '', live_url: '' })
+const emptyAchievement = () => ({ title: '', description: '', year: '' })
+const emptyCertification = () => ({ name: '', issuer: '', year: '', credential_url: '' })
 
 export default function ProfilePage() {
   const router = useRouter()
@@ -17,15 +19,15 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   const [error, setError] = useState('')
-  // Raw, free-typing text for the skills field. Parsed into the skills array on blur.
-  const [skillsText, setSkillsText] = useState('')
 
   const [profile, setProfile] = useState({
     full_name: '', email: '', phone: '', location: '', linkedin: '', github: '',
     education: [emptyEdu()],
     experience: [emptyExp()],
     skills: [] as string[],
-    projects: [emptyProj()]
+    projects: [emptyProj()],
+    achievements: [emptyAchievement()],
+    certifications: [emptyCertification()]
   })
 
   useEffect(() => {
@@ -46,9 +48,10 @@ export default function ProfilePage() {
             education: data.education?.length > 0 ? data.education : [emptyEdu()],
             experience: data.experience?.length > 0 ? data.experience : [emptyExp()],
             skills: data.skills || [],
-            projects: data.projects?.length > 0 ? data.projects : [emptyProj()]
+            projects: data.projects?.length > 0 ? data.projects : [emptyProj()],
+            achievements: data.achievements?.length > 0 ? data.achievements : [emptyAchievement()],
+            certifications: data.certifications?.length > 0 ? data.certifications : [emptyCertification()]
           })
-          setSkillsText((data.skills || []).join(', '))
         }
       } catch(e) {
         // No profile yet
@@ -67,18 +70,9 @@ export default function ProfilePage() {
     update(key, arr)
   }
 
-  // Parse the raw skills text into a clean string array.
-  const parseSkills = (text: string) =>
-    text.split(',').map(s => s.trim()).filter(Boolean)
-
   async function handleSubmit() {
     setLoading(true)
     setError('')
-    // Ensure the latest typed skills are captured even if blur didn't fire.
-    const parsedSkills = parseSkills(skillsText)
-    if (parsedSkills.join('|') !== profile.skills.join('|')) {
-      update('skills', parsedSkills)
-    }
     try {
       const supabase = createClient()
       const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -93,8 +87,10 @@ export default function ProfilePage() {
         github: profile.github,
         education: profile.education,
         experience: profile.experience,
-        skills: parsedSkills,
+        skills: profile.skills,
         projects: profile.projects,
+        achievements: profile.achievements,
+        certifications: profile.certifications,
         updated_at: new Date().toISOString()
       })
       if (profileError) throw new Error('Failed to save profile: ' + profileError.message)
@@ -188,6 +184,8 @@ export default function ProfilePage() {
                 {step === 2 && 'Work experience'}
                 {step === 3 && 'Skills'}
                 {step === 4 && 'Projects'}
+                {step === 5 && 'Achievements'}
+                {step === 6 && 'Certifications'}
               </h2>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Step {step + 1} of {STEPS.length}</p>
             </div>
@@ -328,9 +326,8 @@ export default function ProfilePage() {
                 <textarea
                   id="skills-input"
                   rows={4}
-                  value={skillsText}
-                  onChange={e => setSkillsText(e.target.value)}
-                  onBlur={() => update('skills', parseSkills(skillsText))}
+                  value={profile.skills.join(', ')}
+                  onChange={e => update('skills', e.target.value.split(',').map(s => s.trim()).filter(Boolean))}
                   placeholder="React, TypeScript, Node.js, Python, AWS, Docker..."
                   className="input-base"
                   style={{ resize: 'vertical', lineHeight: 1.7 }}
@@ -339,11 +336,11 @@ export default function ProfilePage() {
                   Add languages, frameworks, tools, and soft skills
                 </p>
               </div>
-              {parseSkills(skillsText).length > 0 && (
+              {profile.skills.length > 0 && (
                 <div>
                   <p className="form-label" style={{ marginBottom: 10 }}>Preview</p>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {parseSkills(skillsText).map(skill => (
+                    {profile.skills.map(skill => (
                       <span key={skill} className="skill-chip">{skill}</span>
                     ))}
                   </div>
@@ -403,6 +400,101 @@ export default function ProfilePage() {
               ))}
               <button onClick={() => update('projects', [...profile.projects, emptyProj()])} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>
                 + Add project
+              </button>
+            </div>
+          )}
+
+          {/* ── Step 5 Achievements ── */}
+          {step === 5 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {profile.achievements.map((ach, i) => (
+                <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', background: 'var(--bg-input)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <span className="badge badge-indigo">Achievement #{i + 1}</span>
+                    {profile.achievements.length > 1 && (
+                      <button
+                        onClick={() => update('achievements', profile.achievements.filter((_, idx) => idx !== i))}
+                        title="Remove"
+                        style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontSize: '0.7rem', fontWeight: 600 }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12, marginBottom: 12 }}>
+                    {([
+                      ['title', 'Achievement title', 'Hackathon winner, Top performer...'],
+                      ['year', 'Year', '2023'],
+                    ] as [string, string, string][]).map(([key, label, placeholder]) => (
+                      <div key={key}>
+                        <label className="form-label">{label}</label>
+                        <input
+                          value={(ach as any)[key] || ''}
+                          onChange={e => updateArray('achievements', i, key, e.target.value)}
+                          placeholder={placeholder}
+                          className="input-base"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div>
+                    <label className="form-label">Description (optional)</label>
+                    <textarea
+                      rows={2}
+                      value={ach.description || ''}
+                      onChange={e => updateArray('achievements', i, 'description', e.target.value)}
+                      placeholder="Briefly describe the achievement and its impact."
+                      className="input-base"
+                      style={{ resize: 'vertical', lineHeight: 1.7 }}
+                    />
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => update('achievements', [...profile.achievements, emptyAchievement()])} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>
+                + Add achievement
+              </button>
+            </div>
+          )}
+
+          {/* ── Step 6 Certifications ── */}
+          {step === 6 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+              {profile.certifications.map((cert, i) => (
+                <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '20px', background: 'var(--bg-input)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+                    <span className="badge badge-green">Certification #{i + 1}</span>
+                    {profile.certifications.length > 1 && (
+                      <button
+                        onClick={() => update('certifications', profile.certifications.filter((_, idx) => idx !== i))}
+                        title="Remove"
+                        style={{ background: 'rgba(248,113,113,0.1)', border: '1px solid rgba(248,113,113,0.2)', borderRadius: 6, padding: '4px 8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 4, color: 'var(--red)', fontSize: '0.7rem', fontWeight: 600 }}
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                    {([
+                      ['name', 'Certification name', 'AWS Certified Solutions Architect'],
+                      ['issuer', 'Issuing organization', 'Amazon Web Services'],
+                      ['year', 'Year', '2023'],
+                      ['credential_url', 'Credential URL (optional)', 'credly.com/badges/...'],
+                    ] as [string, string, string][]).map(([key, label, placeholder]) => (
+                      <div key={key}>
+                        <label className="form-label">{label}</label>
+                        <input
+                          value={(cert as any)[key] || ''}
+                          onChange={e => updateArray('certifications', i, key, e.target.value)}
+                          placeholder={placeholder}
+                          className="input-base"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              <button onClick={() => update('certifications', [...profile.certifications, emptyCertification()])} className="btn-secondary" style={{ alignSelf: 'flex-start' }}>
+                + Add certification
               </button>
             </div>
           )}

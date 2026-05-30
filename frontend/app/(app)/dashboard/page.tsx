@@ -11,6 +11,7 @@ interface Resume {
   ats_score: number
   match_score?: number
   created_at: string
+  latex_code?: string | null
 }
 
 function DashboardContent() {
@@ -22,6 +23,18 @@ function DashboardContent() {
   const [loading, setLoading] = useState(true)
   const [generating, setGenerating] = useState(isGenerating)
   const [user, setUser] = useState<any>(null)
+  const [latexModal, setLatexModal] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+
+  async function copyLatex(code: string) {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch (e) {
+      // Clipboard API unavailable; user can still select manually
+    }
+  }
 
   useEffect(() => {
     loadData()
@@ -191,16 +204,28 @@ function DashboardContent() {
                       })}
                     </p>
                   </div>
-                  <a
-                    href={resume.s3_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-primary"
-                    style={{ whiteSpace: 'nowrap', padding: '8px 16px', fontSize: '0.8rem' }}
-                  >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                    Download PDF
-                  </a>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    {resume.latex_code && (
+                      <button
+                        onClick={() => { setCopied(false); setLatexModal(resume.latex_code || '') }}
+                        className="btn-secondary"
+                        style={{ whiteSpace: 'nowrap', padding: '8px 14px', fontSize: '0.8rem' }}
+                      >
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        View LaTeX
+                      </button>
+                    )}
+                    <a
+                      href={resume.s3_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn-primary"
+                      style={{ whiteSpace: 'nowrap', padding: '8px 16px', fontSize: '0.8rem' }}
+                    >
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                      Download PDF
+                    </a>
+                  </div>
                 </div>
               </div>
             ))}
@@ -208,6 +233,35 @@ function DashboardContent() {
         </div>
 
       </div>
+
+      {/* LaTeX code modal */}
+      {latexModal !== null && (
+        <div
+          onClick={() => setLatexModal(null)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24, zIndex: 1000 }}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="card"
+            style={{ width: '100%', maxWidth: 760, maxHeight: '85vh', display: 'flex', flexDirection: 'column', padding: 0, overflow: 'hidden' }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid var(--border)' }}>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)' }}>LaTeX source</h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <button onClick={() => copyLatex(latexModal)} className="btn-primary" style={{ padding: '6px 14px', fontSize: '0.78rem' }}>
+                  {copied ? '✓ Copied' : 'Copy code'}
+                </button>
+                <button onClick={() => setLatexModal(null)} className="btn-secondary" style={{ padding: '6px 12px', fontSize: '0.78rem' }}>
+                  Close
+                </button>
+              </div>
+            </div>
+            <pre style={{ margin: 0, padding: 20, overflow: 'auto', fontSize: '0.72rem', lineHeight: 1.6, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace', color: 'var(--text-secondary)', background: 'var(--bg-input)', whiteSpace: 'pre', flex: 1 }}>
+              <code>{latexModal}</code>
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
