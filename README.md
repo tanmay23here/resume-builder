@@ -129,11 +129,16 @@ Access the application locally:
 Go to your Supabase project dashboard and open the SQL Editor. Run the following:
 
 ```sql
+-- Profiles table
 create table profiles (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
-  full_name text, email text, phone text, location text,
-  linkedin text, github text,
+  full_name text,
+  email text,
+  phone text,
+  location text,
+  linkedin text,
+  github text,
   education jsonb default '[]',
   experience jsonb default '[]',
   skills jsonb default '[]',
@@ -142,24 +147,54 @@ create table profiles (
   updated_at timestamptz default now()
 );
 
+-- Resumes table
 create table resumes (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id) on delete cascade not null,
   type text check (type in ('base', 'jd_tailored')) not null,
   s3_url text not null,
   ats_score integer,
+  jd_text text,
   match_score integer,
   created_at timestamptz default now()
 );
 
+-- JD analyses table
+create table jd_analyses (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade not null,
+  jd_text text not null,
+  extracted_keywords jsonb default '[]',
+  match_score integer,
+  gap_keywords jsonb default '[]',
+  created_at timestamptz default now()
+);
+
+-- RLS policies (security — users only see their own data)
 alter table profiles enable row level security;
 alter table resumes enable row level security;
+alter table jd_analyses enable row level security;
 
 create policy "Users can manage own profile"
   on profiles for all using (auth.uid() = user_id);
 
 create policy "Users can manage own resumes"
   on resumes for all using (auth.uid() = user_id);
+
+create policy "Users can manage own JD analyses"
+  on jd_analyses for all using (auth.uid() = user_id);
+
+  --Remove User id foreign key
+ALTER TABLE resumes 
+DROP CONSTRAINT resumes_user_id_fkey;
+
+  --Add latex_code column
+SELECT column_name FROM information_schema.columns
+WHERE table_name = 'resumes' AND column_name = 'latex_code';
+
+  --Add achievements and certifications column
+ALTER TABLE profiles ADD COLUMN achievements jsonb DEFAULT '[]';
+ALTER TABLE profiles ADD COLUMN certifications jsonb DEFAULT '[]';
 ```
 
 Also go to Authentication → Providers → Email and disable "Confirm email" for development.
