@@ -544,6 +544,7 @@ cd infrastructure
 terraform init
 terraform plan
 ```
+![terraform](frontend/public/terraform.png)
 
 Review the plan before applying to understand what resources will be created. The configuration provisions the EC2 instance, security group with all required ports, S3 bucket with public read policy, and IAM user with least-privilege S3 access.
 
