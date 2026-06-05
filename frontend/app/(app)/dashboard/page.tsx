@@ -205,6 +205,28 @@ function DashboardContent() {
           )}
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Skeleton placeholder card — visible while AI is generating */}
+            {generating && (
+              <div className="skeleton-card animate-fade-in">
+                <div className="resume-card-inner" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16 }}>
+                  <div style={{ flex: 1 }}>
+                    {/* Badge row */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <div className="skeleton skeleton-badge" />
+                      <div className="skeleton skeleton-badge-sm" />
+                    </div>
+                    {/* Date line */}
+                    <div className="skeleton skeleton-text-sm" />
+                  </div>
+                  {/* Action buttons */}
+                  <div className="resume-card-actions" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div className="skeleton skeleton-btn-sm" />
+                    <div className="skeleton skeleton-btn" />
+                  </div>
+                </div>
+              </div>
+            )}
+
             {resumes.map((resume, idx) => (
               <div
                 key={resume.id}
