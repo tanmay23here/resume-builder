@@ -40,6 +40,9 @@ services:
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - N8N_RUNNERS_ENABLED=false
       - N8N_SECURE_COOKIE=false
+      - N8N_METRICS=true
+      - N8N_METRICS_INCLUDE_WORKFLOW_ID_LABEL=true
+      - N8N_METRICS_INCLUDE_DEFAULT_METRICS=true
     volumes:
       - n8n_data:/home/node/.n8n
     depends_on:
